@@ -1,0 +1,79 @@
+# Збирає APK SpeedRead при кожному оновленні файлів у main.
+# Готовий файл: сторінка Releases (тег apk-latest) — звідти зручно качати з телефона,
+# а також вкладка Actions → останній запуск → Artifacts → SpeedRead-apk.
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Android SDK на ubuntu-latest уже встановлений (ANDROID_HOME), окремий крок не потрібен
+
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: '8.7'
+
+      # Пароль ключа підпису — секрет SR_KEY_PASS (Settings → Secrets and variables → Actions).
+      # Ключ android/app/speedread.keystore створюється тут при першій збірці, шифрується цим паролем
+      # і зберігається в репозиторії. Далі всі збірки підписуються тим самим ключем — APK стає поверх старого.
+      - name: Signing key
+        env:
+          SR_KEY_PASS: ${{ secrets.SR_KEY_PASS }}
+        run: |
+          if [ -z "$SR_KEY_PASS" ]; then
+            echo "::error::Немає секрету SR_KEY_PASS (Settings → Secrets and variables → Actions → New repository secret)."
+            exit 1
+          fi
+          if [ ! -f android/app/speedread.keystore ]; then
+            keytool -genkeypair -storetype PKCS12 -keystore android/app/speedread.keystore -alias speedread \
+              -keyalg RSA -keysize 2048 -validity 10000 -storepass "$SR_KEY_PASS" -keypass "$SR_KEY_PASS" \
+              -dname "CN=Yevhen Shchuka, O=EnergyUA, C=UA"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add android/app/speedread.keystore
+            git commit -m "Ключ підпису APK (зашифрований паролем із секрету SR_KEY_PASS) [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+            echo "Створено новий ключ підпису"
+          fi
+
+      - name: Build APK
+        working-directory: android
+        env:
+          SR_KEY_PASS: ${{ secrets.SR_KEY_PASS }}
+        run: gradle assembleDebug --stacktrace
+
+      - name: Rename APK
+        run: |
+          VER=$(grep -oP 'v:"\K[^"]+' src/00_version.js)
+          cp android/app/build/outputs/apk/debug/app-debug.apk SpeedRead.apk
+          echo "VER=$VER" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SpeedRead-apk
+          path: SpeedRead.apk
+
+      - name: Publish to Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: SpeedRead APK ${{ env.VER }} (збірка ${{ github.run_number }})
+          body: Свіжа збірка SpeedRead для Android. Встанови APK поверх старого — прогрес, рекорди й тексти збережуться.
+          files: SpeedRead.apk
+          make_latest: true

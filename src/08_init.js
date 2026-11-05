@@ -29,6 +29,15 @@ const App = (function(){
   window.addEventListener("pagehide", save);
   let rt=0; window.addEventListener("resize", ()=>{ clearTimeout(rt); rt=setTimeout(()=>{ const m=MODS[cur]; if(m&&m.refit) m.refit(); },120); });
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ const m=MODS[cur]; if(m&&m.refit) m.refit(); });
+  /* Android-додаток: «Назад», згортання, «Поділитися» текстом */
+  window.srBack = () => {
+    if(!$("dlg").hidden){ $("dlg").hidden=true; return true; }
+    if(!$("upd").hidden){ $("upd").hidden=true; return true; }
+    if(cur!=="test"){ tab("test"); return true; }
+    return false;
+  };
+  window.srPause = () => { TestUI.hidden(); ReadUI.leave(); SchulteUI.leave(); save(); };
+  window.srShare = text => { tab("read"); ReadUI.share(text); };
   tab(ST.tab);
   return { tab };
 })();

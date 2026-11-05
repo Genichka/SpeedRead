@@ -125,7 +125,7 @@ const ReadUI = (function(){
       if(e.target.closest("#pClose") || e.target===m) m.hidden=true;
     };
   }
-  function editor(){
+  function editor(pref){
     const m=$("dlg"), c=$("dlgCard");
     c.innerHTML = `<h2>Свій текст</h2>
       <input type="text" id="eTitle" placeholder="Назва (необов'язково)" maxlength="80">
@@ -134,6 +134,7 @@ const ReadUI = (function(){
       <div class="row end"><button class="btn" id="eCancel">Скасувати</button><button class="btn primary" id="eSave">Зберегти й читати</button></div>`;
     m.hidden=false;
     const body=$("eBody"), cnt=()=>{ const n=wordCount(body.value); $("eCnt").textContent=`${fmtN(n)} ${plural(n,"слово","слова","слів")}`; };
+    if(pref){ body.value=pref; cnt(); }
     body.oninput=cnt; body.focus();
     $("eFile").onchange=e=>{ const f=e.target.files[0]; if(!f) return;
       const rd=(enc,cb)=>{ const r=new FileReader(); r.onload=()=>cb(String(r.result)); r.readAsText(f,enc); };
@@ -155,5 +156,6 @@ const ReadUI = (function(){
   V.setFont(S.font, S.fs); setUI();
   return { enter:()=>{ if(!text) setText(ST.cur); else { setUI(); idle(); V.cap.textContent = P.tok()>0?"Торкнись, щоб продовжити":"Торкнись, щоб почати"; } },
     leave:()=>{ if(P.playing){ pause(); } }, toggle, prev:()=>{ P.prevSent(); if(!P.playing) idle(); }, next:()=>{ P.nextSent(); if(!P.playing) idle(); },
-    faster:()=>setW(S.wpm+25), slower:()=>setW(S.wpm-25), refit:()=>V.refit() };
+    faster:()=>setW(S.wpm+25), slower:()=>setW(S.wpm-25), refit:()=>V.refit(),
+    share:t=>{ stopPlay(); editor(String(t||"")); } };
 })();

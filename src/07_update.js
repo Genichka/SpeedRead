@@ -4,14 +4,15 @@
     for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d; } return 0; };
   const btn=$("updBtn"), modal=$("upd"); let remote=null;
   $("ver").textContent=`v${APP.v} · ${fmtD(APP.date)}`;
-  async function fetchRemote(){ const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error(r.status); return r.json(); }
+  async function fetchRemote(){ const r=await fetch((NATIVE?WEB_URL:"")+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error(r.status); return r.json(); }
   function show(mode,info){
     const isNew=mode==="new";
     $("updCard").innerHTML=`<h2 id="updTitle">${isNew?"Доступна нова версія":"Що нового"}</h2>
       <p class="mono upd-v">${isNew?`v${esc(APP.v)} → <b>v${esc(info.v)}</b> від ${fmtD(info.date)}`:`v${esc(info.v)} від ${fmtD(info.date)}`}</p>
       <ul>${(info.notes||[]).slice(0,8).map(n=>`<li>${esc(n)}</li>`).join("")}</ul>
-      ${isNew?`<p class="hint">Прогрес, рекорди й твої тексти збережуться.</p>`:""}
-      <div class="row end">${isNew?`<button class="btn" data-upd="later">Пізніше</button><button class="btn primary" data-upd="go">Оновити зараз</button>`:`<button class="btn primary" data-upd="later">Закрити</button>`}</div>`;
+      ${isNew?`<p class="hint">${NATIVE?"Відкриється завантаження нового APK. Відкрий файл і встанови поверх — прогрес, рекорди й твої тексти збережуться.":"Прогрес, рекорди й твої тексти збережуться."}</p>`:""}
+      ${!isNew&&!NATIVE?`<p class="hint">Є Android-додаток: <a href="${APK_URL}" target="_blank" rel="noopener">завантажити SpeedRead.apk</a></p>`:""}
+      <div class="row end">${isNew?`<button class="btn" data-upd="later">Пізніше</button><button class="btn primary" data-upd="go">${NATIVE?"Завантажити APK":"Оновити зараз"}</button>`:`<button class="btn primary" data-upd="later">Закрити</button>`}</div>`;
     modal.hidden=false; const f=modal.querySelector(".btn.primary"); if(f) f.focus(); }
   async function check(silent){
     try{ remote=await fetchRemote();
@@ -20,7 +21,9 @@
     catch(e){ if(!silent) toast("Не вдалося перевірити оновлення. Перевір підключення до інтернету.","w"); } }
   const swUpdate = () => new Promise((res,rej)=>{ const ch=new MessageChannel(); ch.port1.onmessage=e=>e.data&&e.data.ok?res():rej(new Error("sw"));
     navigator.serviceWorker.controller.postMessage({type:"update"},[ch.port2]); setTimeout(()=>rej(new Error("timeout")),15000); });
-  async function apply(){ save(); toast("Завантажую нову версію…");
+  async function apply(){ save();
+    if(NATIVE){ try{ SpeedReadNative.openUrl(APK_URL); toast("Завантажую APK. Коли завантажиться — відкрий файл і встанови.","ok"); }catch(e){ toast("Не вдалося відкрити завантаження","w"); } return; }
+    toast("Завантажую нову версію…");
     if(navigator.serviceWorker&&navigator.serviceWorker.controller){ try{ await swUpdate(); location.reload(); return; }catch(e){ toast("Не вдалося завантажити оновлення. Спробуй пізніше.","w"); return; } }
     const u=new URL(location.href); u.searchParams.set("v",remote.v); location.replace(u.toString()); }
   document.addEventListener("click",e=>{
@@ -34,5 +37,5 @@
     localStorage.setItem("speedread-ver",APP.v); }catch(e){}
   try{ const u=new URL(location.href); if(u.searchParams.has("v")){ u.searchParams.delete("v"); history.replaceState(null,"",u.toString()); } }catch(e){}
   setTimeout(()=>check(true),1500); setInterval(()=>check(true),30*60*1000);
-  if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.host)) navigator.serviceWorker.register("sw.js").catch(()=>{});
+  if(!NATIVE&&"serviceWorker" in navigator&&/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.host)) navigator.serviceWorker.register("sw.js").catch(()=>{});
 })();

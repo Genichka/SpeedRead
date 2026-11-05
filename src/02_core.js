@@ -2,6 +2,9 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const KEY = "speedread-v1";
+const NATIVE = typeof window.SpeedReadNative !== "undefined";   // запущено як Android-додаток (APK)
+const WEB_URL = "https://genichka.github.io/SpeedRead/";
+const APK_URL = "https://github.com/Genichka/SpeedRead/releases/download/apk-latest/SpeedRead.apk";
 const DEF = { tab:"test",
   set:{ wpm:300, chunk:1, pauses:true, ramp:false, rampTo:500, font:"sans", fs:40, lang:"uk", sSize:5, sShuf:false },
   cur:"uk-eyes", pos:{}, custom:[], tests:[], used:[],
@@ -40,8 +43,8 @@ const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.ra
 
 /* Утримання екрана ввімкненим під час читання */
 let wakeL = null;
-async function wakeOn(){ try{ if("wakeLock" in navigator && !wakeL){ wakeL=await navigator.wakeLock.request("screen"); wakeL.addEventListener("release",()=>{ wakeL=null; }); } }catch(e){} }
-function wakeOff(){ try{ if(wakeL) wakeL.release(); }catch(e){} wakeL=null; }
+async function wakeOn(){ if(NATIVE){ try{ SpeedReadNative.keepScreen(true); }catch(e){} return; } try{ if("wakeLock" in navigator && !wakeL){ wakeL=await navigator.wakeLock.request("screen"); wakeL.addEventListener("release",()=>{ wakeL=null; }); } }catch(e){} }
+function wakeOff(){ if(NATIVE){ try{ SpeedReadNative.keepScreen(false); }catch(e){} return; } try{ if(wakeL) wakeL.release(); }catch(e){} wakeL=null; }
 
 /* ---------- Текст → слова ---------- */
 const DASH = /^[—–\-…]+$/;
