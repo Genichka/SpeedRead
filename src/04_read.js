@@ -33,6 +33,7 @@ const ReadUI = (function(){
     P.load(toks, S.chunk, S.pauses, pos>=toks.length?0:pos);
     rampFrom=P.tok(); run={ words:0, ms:0 };
     $("rTitle").textContent=text.title; $("rEnd").hidden=true; $("rQuiz").hidden=true;
+    $("rHint").hidden=!isEn(); Words.render();
     V.cap.textContent = P.tok()>0 ? "Торкнись, щоб продовжити" : "Торкнись, щоб почати";
     idle(); save();
   }
@@ -45,16 +46,20 @@ const ReadUI = (function(){
   function stopPlay(){ if(!P.playing) return; P.pause(); acc(); wakeOff(); ico(); save(); }
   function pause(){ if(!P.playing) return; stopPlay(); idle(); V.cap.textContent="Пауза"; }
   const toggle = () => P.playing ? pause() : play();
+  const isEn = () => !!text && text.lang==="en";
   function ctx(){
     const box=$("rCtxP");
-    if(P.playing || !toks.length || P.tok()===0 || P.done()){ box.hidden=true; return; }
+    if(P.playing || !toks.length || P.done() || (P.tok()===0 && !isEn())){ box.hidden=true; return; }
     const t=Math.min(P.tok(), toks.length-1), pi=toks[t].p;
     let a=t; while(a>0 && toks[a-1].p===pi && t-a<70) a--;
     let b=t; while(b<toks.length-1 && toks[b+1].p===pi && b-t<70) b++;
     const f=P.fr[P.fi], cs=f?f.s:t, ce=f?f.e:t;
     $("rCtx").innerHTML = (a>0 && toks[a-1].p===pi ? "… " : "") +
-      toks.slice(a,b+1).map((x,k)=>{ const i=a+k; return `<span data-i="${i}" class="${i>=cs&&i<=ce?"cur":i<cs?"done":""}">${esc(x.w)}</span>`; }).join(" ") +
+      toks.slice(a,b+1).map((x,k)=>{ const i=a+k; let cl=i>=cs&&i<=ce?"cur":i<cs?"done":"";
+        if(isEn() && ST.words.length){ const r=Words.lookup(toks,i); if(r && Words.has(r.en)) cl+=" kw"; }
+        return `<span data-i="${i}" class="${cl}">${esc(x.w)}</span>`; }).join(" ") +
       (b<toks.length-1 && toks[b+1].p===pi ? " …" : "");
+    $("rCtxH").textContent = isEn() ? "торкнись слова — переклад і «Вчити у WordHunter»" : "торкнись слова, щоб перейти до нього";
     box.hidden=false;
     const cur=$("rCtx").querySelector(".cur"); if(cur){ const c=$("rCtx"); c.scrollTop = cur.offsetTop - c.offsetTop - c.clientHeight/2; }
   }
@@ -99,7 +104,9 @@ const ReadUI = (function(){
   $("rPrev").onclick=()=>{ P.prevSent(); if(!P.playing) idle(); };
   $("rNext").onclick=()=>{ P.nextSent(); if(!P.playing) idle(); };
   $("rRestart").onclick=()=>{ stopPlay(); P.fi=0; rampFrom=0; run={words:0,ms:0}; ST.pos[text.id]=0; $("rEnd").hidden=true; $("rQuiz").hidden=true; idle(); V.cap.textContent="Торкнись, щоб почати"; save(); };
-  $("rCtx").addEventListener("click", e=>{ const s=e.target.closest("[data-i]"); if(!s) return; P.seekTok(+s.dataset.i); rampFrom=P.tok(); idle(); V.cap.textContent="Пауза"; });
+  const seekTo = i => { P.seekTok(i); rampFrom=P.tok(); idle(); V.cap.textContent="Пауза"; };
+  $("rCtx").addEventListener("click", e=>{ const s=e.target.closest("[data-i]"); if(!s) return; const i=+s.dataset.i;
+    if(isEn()) Words.sheet(toks, i, j=>{ if(j!=null) seekTo(j); else ctx(); }); else seekTo(i); });
   $("rPick").onclick=openPicker;
 
   /* ---- Вибір і додавання текстів ---- */
@@ -111,6 +118,7 @@ const ReadUI = (function(){
     c.innerHTML = `<h2>Обери текст</h2><div class="tlist">
       <div class="tgrp">Українською</div>${TEXTS.filter(t=>t.lang==="uk").map(item).join("")}
       <div class="tgrp">English</div>${TEXTS.filter(t=>t.lang==="en").map(item).join("")}
+      <div class="tgrp">English · тексти WordHunter</div>${WH_TEXTS.map(item).join("")}
       <div class="tgrp">Мої тексти</div>${ST.custom.length?ST.custom.map(item).join(""):`<div class="hint" style="padding:4px 8px">Встав свій текст або відкрий файл .txt — статтю, розділ книжки, конспект.</div>`}
       </div><div class="row sb"><button class="btn" id="pAdd">+ Свій текст</button><button class="btn primary" id="pClose">Закрити</button></div>`;
     m.hidden=false;
@@ -154,7 +162,7 @@ const ReadUI = (function(){
     };
   }
   V.setFont(S.font, S.fs); setUI();
-  return { enter:()=>{ if(!text) setText(ST.cur); else { setUI(); idle(); V.cap.textContent = P.tok()>0?"Торкнись, щоб продовжити":"Торкнись, щоб почати"; } },
+  return { enter:()=>{ Words.render(); if(!text) setText(ST.cur); else { setUI(); idle(); V.cap.textContent = P.tok()>0?"Торкнись, щоб продовжити":"Торкнись, щоб почати"; } },
     leave:()=>{ if(P.playing){ pause(); } }, toggle, prev:()=>{ P.prevSent(); if(!P.playing) idle(); }, next:()=>{ P.nextSent(); if(!P.playing) idle(); },
     faster:()=>setW(S.wpm+25), slower:()=>setW(S.wpm-25), refit:()=>V.refit(),
     share:t=>{ stopPlay(); editor(String(t||"")); } };

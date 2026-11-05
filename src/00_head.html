@@ -130,6 +130,17 @@ textarea{min-height:180px;resize:vertical;line-height:1.5}
 .ctx span:hover{background:var(--hover)}
 .ctx span.cur{background:color-mix(in srgb,var(--red) 22%,transparent);color:var(--strong)}
 .ctx span.done{color:var(--muted)}
+.ctx span.kw{text-decoration:underline dotted var(--orange);text-underline-offset:4px}
+.wen{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--strong);margin-right:6px}
+.wua{font-size:18px;color:var(--strong);line-height:1.35}
+.wlist{display:flex;flex-direction:column;max-height:320px;overflow:auto}
+.wrow{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);min-width:0}
+.wrow:first-child{border-top:0}
+.wrow b{font-family:var(--mono);font-weight:500;color:var(--strong);white-space:nowrap}
+.wrow .ua{flex:1;min-width:0;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrow .ok{color:var(--green);font-size:13px}
+.wrow.sent b,.wrow.sent .ua{color:var(--muted)}
+.wrow .btn.icon{min-height:30px;min-width:30px;padding:2px 6px}
 
 /* ---- Тест */
 .hero-q{font-size:20px;font-weight:500;color:var(--strong);margin:2px 0 6px;line-height:1.3}
@@ -261,6 +272,7 @@ textarea{min-height:180px;resize:vertical;line-height:1.5}
         <button class="btn grow" id="rPick"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="tt" id="rTitle">Текст</span><span class="t1">▾</span></button>
         <button class="btn icon" id="rRestart" title="З початку" aria-label="З початку"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></button>
       </div>
+      <div class="note" id="rHint" hidden>Англійський текст: у паузі торкнись слова — побачиш переклад зі словника WordHunter і зможеш додати слово в тренування. Щоб закріплювати слова, читай повільно: 150–250 слів/хв.</div>
       <div>
         <div class="reader" id="rReader"></div>
         <div class="prog" style="margin-top:8px"><i id="rProg"></i></div>
@@ -274,8 +286,13 @@ textarea{min-height:180px;resize:vertical;line-height:1.5}
         <button class="btn" id="rNext" title="Наступне речення"><svg viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7z"/></svg></button>
       </div>
       <div class="panel" id="rCtxP" hidden>
-        <div class="ph">Контекст <span class="hint">торкнись слова, щоб перейти до нього</span></div>
+        <div class="ph">Контекст <span class="hint" id="rCtxH">торкнись слова, щоб перейти до нього</span></div>
         <div class="ctx" id="rCtx"></div>
+      </div>
+      <div class="panel" id="rWords" hidden>
+        <div class="ph">Слова для WordHunter <span class="hint" id="rWordsN"></span></div>
+        <div class="wlist" id="rWordsList"></div>
+        <div class="row" style="margin-top:10px"><button class="btn primary grow" id="rWordsSend">Відкрити у WordHunter</button><button class="btn" id="rWordsClear">Очистити передані</button></div>
       </div>
       <div class="panel" id="rEnd" hidden></div>
       <div class="panel" id="rQuiz" hidden></div>

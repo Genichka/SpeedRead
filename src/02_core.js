@@ -7,7 +7,7 @@ const WEB_URL = "https://genichka.github.io/SpeedRead/";
 const APK_URL = "https://github.com/Genichka/SpeedRead/releases/download/apk-latest/SpeedRead.apk";
 const DEF = { tab:"test",
   set:{ wpm:300, chunk:1, pauses:true, ramp:false, rampTo:500, font:"sans", fs:40, lang:"uk", sSize:5, sShuf:false },
-  cur:"uk-eyes", pos:{}, custom:[], tests:[], used:[],
+  cur:"uk-eyes", pos:{}, custom:[], tests:[], used:[], words:[],
   read:{ words:0, ms:0, days:{} },
   schulte:{ best:{}, runs:{} } };
 function merge(d, s){ for(const k in s){ const a=d[k], b=s[k];
@@ -168,5 +168,5 @@ function runQuiz(box, text, onDone){
   }
   draw();
 }
-const allTexts = () => TEXTS.concat(ST.custom);
+const allTexts = () => TEXTS.concat(WH_TEXTS, ST.custom);
 const textById = id => allTexts().find(t=>t.id===id);
