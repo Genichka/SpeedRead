@@ -1,0 +1,1113 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#111217"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>SpeedRead</title>
+<meta name="description" content="Тренажер швидкочитання: слова по одному, тест «На якій швидкості ти зламаєшся?», таблиці Шульте, прогрес.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;600&display=swap">
+<style>
+/* ===== SpeedRead · стилі. Палітра Grafana dark: полотно #111217, панелі #181b1f, другий рівень #22252b,
+   тонкі рамки, радіус 4px, синій акцент #3d71d9 / #6e9fff, активна вкладка — фірмовий градієнт Grafana ===== */
+:root{
+  --bg:#111217; --panel:#181b1f; --panel2:#22252b; --panel3:#2c3037;
+  --line:rgba(204,204,220,.12); --line2:rgba(204,204,220,.2); --hover:rgba(204,204,220,.08);
+  --fg:#ccccdc; --muted:#8e8e9e; --strong:#ffffff;
+  --blue:#6e9fff; --blue2:#3d71d9; --blue3:#4a7fe6; --green:#73bf69; --yellow:#fade2a; --orange:#ff9830; --red:#f2495c;
+  --c1:#5b8ff0; --c2:#d4741a;
+  --grad:linear-gradient(90deg,#f55f3e,#ff8833);
+  --sans:Inter,Roboto,"Segoe UI",-apple-system,system-ui,sans-serif;
+  --serif:Georgia,"Noto Serif","Times New Roman",serif;
+  --mono:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:4px; --shadow:0 8px 24px rgba(1,4,9,.75); color-scheme:dark;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--panel3) transparent}
+*::-webkit-scrollbar{width:8px;height:8px}*::-webkit-scrollbar-thumb{background:var(--panel3);border-radius:4px}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--blue2)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.t1{color:var(--muted)} .t2{color:var(--blue)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center} .row.end{justify-content:flex-end} .row.sb{justify-content:space-between}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hint{font-size:12.5px;color:var(--muted)} .hint b{color:var(--fg);font-weight:500}
+.grow{flex:1 1 auto;min-width:0}
+
+/* ---- Каркас */
+.app{position:fixed;inset:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
+.top{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap;row-gap:4px}
+.brand svg{width:22px;height:22px;flex:none}
+h1{margin:0;font-size:18px;font-weight:500;white-space:nowrap}
+.verrow{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.ver{font-size:11.5px;color:var(--muted);border:1px solid var(--line2);border-radius:var(--r);padding:2px 7px;cursor:pointer}
+.ver:hover{color:var(--fg);border-color:var(--muted)}
+.btn.upd{position:relative;min-height:26px;padding:2px 9px;font-size:12.5px}
+.btn.upd .dot{display:none;position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 2px var(--panel)}
+.btn.upd.has{border-color:var(--orange);color:var(--orange)} .btn.upd.has .dot{display:block}
+@media (max-width:389px){.top{padding:6px 8px} .brand{gap:6px} .brand svg{width:20px;height:20px} h1{font-size:16px} .verrow{gap:4px} .ver{font-size:10.5px;padding:2px 5px} .btn.upd{padding:2px 6px;font-size:12px}}
+
+.tbar{display:flex;gap:2px;background:var(--panel);border-bottom:1px solid var(--line);padding:2px 6px}
+.tb{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 4px 7px;background:none;border:0;border-radius:var(--r);color:var(--muted)}
+.tb:hover{color:var(--fg);background:var(--hover)}
+.tb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tb small{font-size:11px;line-height:1.1}
+.tb[aria-selected="true"]{color:var(--strong)}
+.tb[aria-selected="true"]::after,.seg button[aria-pressed="true"]::after{content:"";position:absolute;left:8px;right:8px;bottom:0;height:2px;border-radius:2px;background:var(--grad)}
+
+.main{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scr{max-width:720px;margin:0 auto;padding:12px 16px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.scr[hidden]{display:none}
+
+/* ---- Панелі й елементи керування */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px;font-size:14px;font-weight:500;color:var(--strong)}
+.ph .hint{font-weight:400}
+.panel p{margin:0 0 8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;min-width:36px;padding:6px 12px;border:1px solid var(--line2);border-radius:var(--r);background:var(--panel2);color:var(--fg);font-size:13.5px;font-weight:500;line-height:1.2;user-select:none}
+.btn:hover{background:var(--panel3);border-color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--blue2);border-color:var(--blue2);color:#fff} .btn.primary:hover{background:var(--blue3);border-color:var(--blue3)}
+.btn.danger{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent);background:transparent}
+.btn.danger:hover{background:color-mix(in srgb,var(--red) 12%,transparent)}
+.btn.ghost{background:transparent;border-color:transparent} .btn.ghost:hover{background:var(--hover);border-color:var(--line2)}
+.btn.big{min-height:48px;font-size:15px;padding:8px 18px}
+.btn.wide{width:100%}
+.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn.icon{padding:6px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;background:var(--panel2)}
+.seg button{position:relative;min-height:32px;padding:4px 11px;background:transparent;border:0;border-left:1px solid var(--line);color:var(--muted);font-size:13px}
+.seg button:first-child{border-left:0}
+.seg button:hover{color:var(--fg);background:var(--hover)}
+.seg button[aria-pressed="true"]{color:var(--strong);background:var(--panel3)}
+.field{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.field:first-of-type{border-top:0}
+.field>span:first-child{color:var(--fg)}
+.sw{position:relative;width:36px;height:20px;flex:none;appearance:none;-webkit-appearance:none;margin:0;border-radius:10px;background:var(--panel3);border:1px solid var(--line2);cursor:pointer;transition:background .15s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.sw:checked{background:var(--blue2);border-color:var(--blue2)} .sw:checked::after{transform:translateX(16px);background:#fff}
+input[type=range]{width:100%;accent-color:var(--blue2)}
+input[type=text],textarea,select{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px;color:var(--fg)}
+input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue2)}
+textarea{min-height:180px;resize:vertical;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.chip{font-family:var(--mono);font-size:12px;padding:2px 7px;border:1px solid var(--line2);border-radius:var(--r);color:var(--muted)}
+.chips .arr{color:var(--muted);font-size:11px}
+
+/* ---- Читалка RSVP */
+.reader{position:relative;height:190px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation;cursor:pointer;--px:38%}
+.reader.tall{height:min(46vh,300px)}
+.ret{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line2)}
+.ret.t{top:calc(50% - 46px)} .ret.b{top:calc(50% + 46px)}
+.ret::after{content:"";position:absolute;left:var(--px);width:1px;height:14px;background:var(--muted);transform:translateX(-.5px)}
+.ret.t::after{top:0} .ret.b::after{bottom:0}
+.word{position:absolute;left:0;top:50%;white-space:pre;font-family:var(--sans);font-weight:500;font-size:40px;line-height:1;color:var(--strong);transform:translate(0,-50%);letter-spacing:.2px}
+.reader.f-serif .word{font-family:var(--serif);font-weight:400}
+.reader.f-mono .word{font-family:var(--mono);font-weight:500}
+.word .wp{color:var(--red)}
+.word.dim{color:var(--muted)} .word.dim .wp{color:var(--muted)}
+.cap{position:absolute;left:12px;right:12px;top:12px;text-align:center;font-size:13px;color:var(--muted);line-height:1.3}
+.spd{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:12.5px;color:var(--muted);transition:color .3s}
+.spd.flash{animation:flash .9s ease}
+@keyframes flash{0%{color:var(--orange);transform:scale(1.25)}100%{color:var(--muted);transform:scale(1)}}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(17,18,23,.82);text-align:center;padding:12px}
+.overlay[hidden]{display:none}
+.overlay b{color:var(--strong);font-weight:500;font-size:15px}
+.prog{height:3px;background:var(--panel3);border-radius:2px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--blue2);transition:width .2s linear}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-top:6px}
+.ctrl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.ctrl .btn{min-height:44px;padding:6px 4px}
+.ctrl .btn.play{background:var(--blue2);border-color:var(--blue2);color:#fff}
+.ctrl .btn.play svg{width:22px;height:22px}
+.ctrl small{font-size:11px;color:var(--muted)}
+.picker{display:flex;align-items:center;gap:8px}
+.picker .btn{justify-content:flex-start;min-width:0}
+.picker .btn .tt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctx{font-size:15px;line-height:1.65;max-height:240px;overflow:auto}
+.ctx span{cursor:pointer;border-radius:3px;padding:0 1px}
+.ctx span:hover{background:var(--hover)}
+.ctx span.cur{background:color-mix(in srgb,var(--red) 22%,transparent);color:var(--strong)}
+.ctx span.done{color:var(--muted)}
+
+/* ---- Тест */
+.hero-q{font-size:20px;font-weight:500;color:var(--strong);margin:2px 0 6px;line-height:1.3}
+.breakbtn{min-height:64px;font-size:17px;border-color:color-mix(in srgb,var(--red) 55%,transparent);color:var(--strong);background:color-mix(in srgb,var(--red) 18%,var(--panel2))}
+.breakbtn:hover{background:color-mix(in srgb,var(--red) 28%,var(--panel2));border-color:var(--red)}
+.qcard .qn{font-size:12px;color:var(--muted);margin-bottom:4px}
+.qcard .qt{font-size:16px;font-weight:500;color:var(--strong);margin-bottom:12px;line-height:1.35}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts .btn{justify-content:flex-start;text-align:left;min-height:46px;padding:8px 12px;font-weight:400;font-size:14px}
+.opts .btn.ok{border-color:var(--green);background:color-mix(in srgb,var(--green) 16%,var(--panel2));color:var(--strong)}
+.opts .btn.bad{border-color:var(--red);background:color-mix(in srgb,var(--red) 16%,var(--panel2))}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (min-width:560px){.stats.s4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-width:0}
+.stat .k{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .v{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--strong);line-height:1.25;white-space:nowrap}
+.stat .v small{font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.stat .s{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big-res{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.big-res .n{font-family:var(--mono);font-size:44px;font-weight:500;color:var(--strong);line-height:1}
+.big-res .u{color:var(--muted)}
+.note{border-left:3px solid var(--blue2);background:var(--panel2);padding:8px 10px;border-radius:0 var(--r) var(--r) 0;font-size:13px}
+.note.w{border-left-color:var(--orange)} .note.ok{border-left-color:var(--green)}
+
+/* ---- Шульте */
+.sbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.sgrid-wrap{position:relative;width:100%;max-width:460px;margin:0 auto}
+.sgrid{display:grid;gap:4px;aspect-ratio:1/1;width:100%}
+.sgrid button{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:0;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);font-family:var(--mono);font-weight:500;color:var(--strong);user-select:none;touch-action:manipulation}
+.sgrid button:hover{border-color:var(--line2)}
+.sgrid button.ok{background:color-mix(in srgb,var(--green) 28%,var(--panel2));border-color:var(--green)}
+.sgrid button.bad{background:color-mix(in srgb,var(--red) 28%,var(--panel2));border-color:var(--red)}
+.sgrid button.found{color:var(--muted)}
+.sdot{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--red);pointer-events:none;box-shadow:0 0 0 2px var(--panel)}
+.sgrid-wrap .overlay{border-radius:var(--r)}
+
+/* ---- Прогрес */
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--fg);margin-bottom:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;height:2px;border-radius:1px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart .ax{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .dl{font-size:11.5px;fill:var(--fg)}
+.tip{display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center;min-height:38px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:6px 9px;font-size:12px;margin-bottom:6px}
+@media (hover:none){.kbd{display:none}}
+.tip .td{color:var(--muted);flex:1 0 100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tip .tr{display:inline-flex;align-items:center;gap:6px}
+.tip .tr i{display:inline-block;width:12px;height:2px;border-radius:1px}
+.tip .tr b{font-family:var(--mono);font-weight:500;color:var(--strong)}
+.tip .tr span{color:var(--muted)}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{text-align:left;font-weight:500;color:var(--muted);font-size:11.5px;padding:6px 6px;border-bottom:1px solid var(--line2);white-space:nowrap}
+.tbl td{padding:7px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td.n,.tbl th.n{text-align:right;font-family:var(--mono)}
+.tbl td.tx{white-space:normal;color:var(--fg);min-width:90px}
+.tblwrap{overflow-x:auto}
+.empty{padding:18px 8px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ---- Список текстів */
+.tlist{display:flex;flex-direction:column;gap:2px;max-height:52vh;overflow:auto;margin:0 -4px;padding:0 4px}
+.tgrp{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.titem{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:var(--r);border:1px solid transparent;cursor:pointer}
+.titem:hover{background:var(--hover)}
+.titem.cur{border-color:var(--blue2);background:color-mix(in srgb,var(--blue2) 12%,transparent)}
+.titem .tn{flex:1;min-width:0}
+.titem .tn div:first-child{color:var(--strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.titem .tn div:last-child{font-size:11.5px;color:var(--muted)}
+.titem .pc{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* ---- Модальні вікна й тости */
+.modal{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(1,4,9,.6)}
+.modal[hidden]{display:none}
+.modal-card{width:100%;max-width:520px;max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px}
+.modal-card h2{margin:0;padding-bottom:12px;font-size:16px;font-weight:500;color:var(--strong);border-bottom:1px solid var(--line)}
+.modal-card ul{margin:0;padding-left:20px;max-height:40vh;overflow:auto;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.modal-card p{margin:0}
+.upd-v{font-size:13px;color:var(--muted)} .upd-v b{color:var(--strong);font-weight:500}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 32px);background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--blue2);border-radius:var(--r);box-shadow:var(--shadow);padding:9px 12px;font-size:13px;color:var(--fg);opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.e{border-left-color:var(--red)} .toast.ok{border-left-color:var(--green)} .toast.w{border-left-color:var(--orange)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head><body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.6z" fill="#ffb21f" stroke="#e8741a" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      <h1><span class="t1">Speed</span><span class="t2">Read</span></h1>
+      <span class="verrow"><span class="ver mono" id="ver" role="button" tabindex="0" title="Що нового"></span><button class="btn upd" id="updBtn" title="Перевірити оновлення"><span aria-hidden="true">↻</span> Оновити<i class="dot" aria-hidden="true"></i></button></span>
+    </div>
+  </header>
+  <nav class="tbar" role="tablist" aria-label="Розділи">
+    <button class="tb" role="tab" data-tab="test" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4.5-5"/><circle cx="12" cy="16" r="1.3"/></svg><small>Тест</small></button>
+    <button class="tb" role="tab" data-tab="read" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h6a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H3z"/><path d="M21 5h-6a3 3 0 0 0-3 3v11a2 2 0 0 1 2-2h7z"/></svg><small>Читання</small></button>
+    <button class="tb" role="tab" data-tab="schulte" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M9.33 4v16M14.67 4v16M4 9.33h16M4 14.67h16"/></svg><small>Шульте</small></button>
+    <button class="tb" role="tab" data-tab="stats" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M5 15l4-4 3 3 6-7"/></svg><small>Прогрес</small></button>
+  </nav>
+  <main class="main" id="main">
+
+    <!-- ===== Тест ===== -->
+    <section class="scr" id="scr-test">
+      <div id="tIntro" class="panel">
+        <div class="hero-q">На якій швидкості ти зламаєшся?</div>
+        <p class="hint">Слова з'являтимуться по одному. Дивись на червону літеру під рискою. Швидкість зростає сходинками — щойно перестанеш розуміти текст, тисни <b>«Зламався»</b>. Далі текст піде на сходинку повільніше, а наприкінці буде 3 запитання на розуміння.</p>
+        <div class="chips" id="tSteps" style="margin:10px 0 12px"></div>
+        <div class="row sb" style="margin-bottom:12px">
+          <span class="lbl">Мова тексту</span>
+          <div class="seg" id="tLang"><button data-v="uk">Українська</button><button data-v="en">English</button></div>
+        </div>
+        <button class="btn primary big wide" id="tStart"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg>Почати тест</button>
+        <div class="hint" id="tLast" style="margin-top:10px"></div>
+      </div>
+      <div id="tRun" hidden>
+        <div class="reader tall" id="tReader"></div>
+        <div class="prog" style="margin-top:8px"><i id="tProg"></i></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn breakbtn grow" id="tBreak">Зламався</button>
+          <button class="btn ghost" id="tStop" title="Зупинити тест" style="min-width:64px">Стоп</button>
+        </div>
+        <p class="hint kbd" style="text-align:center;margin-top:8px">Пробіл на клавіатурі — теж «Зламався»</p>
+      </div>
+      <div id="tQuiz" class="panel qcard" hidden></div>
+      <div id="tRes" class="panel" hidden></div>
+    </section>
+
+    <!-- ===== Читання ===== -->
+    <section class="scr" id="scr-read" hidden>
+      <div class="picker">
+        <button class="btn grow" id="rPick"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="tt" id="rTitle">Текст</span><span class="t1">▾</span></button>
+        <button class="btn icon" id="rRestart" title="З початку" aria-label="З початку"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></button>
+      </div>
+      <div>
+        <div class="reader" id="rReader"></div>
+        <div class="prog" style="margin-top:8px"><i id="rProg"></i></div>
+        <div class="meta"><span class="mono" id="rPos"></span><span class="mono" id="rLeft"></span></div>
+      </div>
+      <div class="ctrl">
+        <button class="btn" id="rPrev" title="Попереднє речення"><svg viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M19 5l-10 7 10 7z"/></svg></button>
+        <button class="btn" id="rSlow" title="Повільніше"><span class="mono">−25</span></button>
+        <button class="btn play" id="rPlay" title="Старт / пауза"><svg viewBox="0 0 24 24" id="rPlayIco"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg></button>
+        <button class="btn" id="rFast" title="Швидше"><span class="mono">+25</span></button>
+        <button class="btn" id="rNext" title="Наступне речення"><svg viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7z"/></svg></button>
+      </div>
+      <div class="panel" id="rCtxP" hidden>
+        <div class="ph">Контекст <span class="hint">торкнись слова, щоб перейти до нього</span></div>
+        <div class="ctx" id="rCtx"></div>
+      </div>
+      <div class="panel" id="rEnd" hidden></div>
+      <div class="panel" id="rQuiz" hidden></div>
+      <div class="panel">
+        <div class="ph">Налаштування</div>
+        <div class="field"><span>Швидкість</span><b class="mono" id="rWpmV"></b></div>
+        <input type="range" id="rWpm" min="100" max="1500" step="25" aria-label="Швидкість, слів за хвилину">
+        <div class="field" style="margin-top:6px"><span>Слів за раз</span><div class="seg" id="rChunk"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button></div></div>
+        <div class="field"><span>Паузи на розділових знаках<br><small class="hint">і на довгих словах; середня швидкість не змінюється</small></span><input type="checkbox" class="sw" id="rPauses"></div>
+        <div class="field"><span>Розгін<br><small class="hint">+25 слів/хв кожні 40 слів до цілі</small></span><input type="checkbox" class="sw" id="rRamp"></div>
+        <div class="field" id="rRampF"><span>Ціль розгону</span><div class="row"><button class="btn icon" id="rRampDn"><span class="mono">−</span></button><b class="mono" id="rRampV" style="min-width:76px;text-align:center"></b><button class="btn icon" id="rRampUp"><span class="mono">+</span></button></div></div>
+        <div class="field"><span>Шрифт</span><div class="seg" id="rFont"><button data-v="sans">Sans</button><button data-v="serif">Serif</button><button data-v="mono">Mono</button></div></div>
+        <div class="field"><span>Розмір слова</span><div class="seg" id="rFs"><button data-v="32">A−</button><button data-v="40">A</button><button data-v="50">A+</button></div></div>
+      </div>
+    </section>
+
+    <!-- ===== Шульте ===== -->
+    <section class="scr" id="scr-schulte" hidden>
+      <div class="panel">
+        <div class="ph">Таблиця Шульте <span class="hint">розширює поле зору</span></div>
+        <p class="hint">Дивись у центр, на червону крапку. Знаходь числа по порядку від 1 бічним зором, не водячи очима по таблиці.</p>
+        <div class="field"><span>Розмір</span><div class="seg" id="sSize"><button data-v="3">3×3</button><button data-v="4">4×4</button><button data-v="5">5×5</button><button data-v="6">6×6</button><button data-v="7">7×7</button></div></div>
+        <div class="field"><span>Перемішувати після кожного числа</span><input type="checkbox" class="sw" id="sShuf"></div>
+      </div>
+      <div class="sbar">
+        <div class="stat"><div class="k">Знайди</div><div class="v" id="sNext">1</div></div>
+        <div class="stat"><div class="k">Час</div><div class="v" id="sTime">0:00.0</div></div>
+        <div class="stat"><div class="k">Помилки</div><div class="v" id="sErr">0</div></div>
+      </div>
+      <div class="sgrid-wrap">
+        <div class="sgrid" id="sGrid"></div>
+        <div class="sdot"></div>
+        <div class="overlay" id="sOver"></div>
+      </div>
+      <div class="hint" id="sBest" style="text-align:center"></div>
+    </section>
+
+    <!-- ===== Прогрес ===== -->
+    <section class="scr" id="scr-stats" hidden>
+      <div class="stats s4" id="kpi"></div>
+      <div class="panel">
+        <div class="ph">Швидкість у тестах <span class="hint">слів/хв</span></div>
+        <div class="legend"><span><i style="background:var(--c1)"></i>Комфортна</span><span><i style="background:var(--c2)"></i>Межа («Зламався»)</span></div>
+        <div class="chart" id="chart"></div>
+      </div>
+      <div class="panel">
+        <div class="ph">Історія тестів</div>
+        <div class="tblwrap" id="hist"></div>
+      </div>
+      <div class="panel">
+        <div class="ph">Рекорди Шульте</div>
+        <div class="tblwrap" id="sRec"></div>
+      </div>
+      <button class="btn danger" id="resetAll">Скинути весь прогрес</button>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="upd" hidden role="dialog" aria-modal="true" aria-labelledby="updTitle"><div class="modal-card" id="updCard"></div></div>
+<div class="modal" id="dlg" hidden role="dialog" aria-modal="true"><div class="modal-card" id="dlgCard"></div></div>
+<script>
+const APP = { v:"1.0.0", date:"2026-11-05", notes:["Перша версія SpeedRead — тренажер швидкочитання: слова по одному, опорна літера червоним","Тест «На якій швидкості ти зламаєшся?»: швидкість росте сходинками 250 → 900 слів/хв, кнопка «Зламався», перевірка розуміння","Читання будь-якого тексту: швидкість, 1–3 слова за раз, паузи на розділових знаках, розгін, свої тексти й файли .txt","Таблиці Шульте 3×3 … 7×7 з рекордами","Прогрес: найкращі результати, графік тестів, історія, прочитані слова","Українські й англійські тексти, офлайн-режим, встановлення на телефон"] };
+/* ===== Бібліотека текстів. Абзаци — через порожній рядок. q: [питання, правильна, хибна, хибна] ===== */
+const TEXTS = [
+{ id:"uk-eyes", lang:"uk", title:"Як читають очі", body:
+`Здається, що під час читання очі плавно ковзають рядком. Насправді вони рухаються стрибками. Науковці називають ці стрибки саккадами, а короткі зупинки між ними — фіксаціями. Саме під час фіксацій мозок отримує зображення слів, а під час стрибка ми майже нічого не бачимо.
+
+Одна фіксація триває приблизно чверть секунди. За цей час око чітко бачить лише невелику ділянку: кілька літер ліворуч від точки погляду і трохи більше праворуч. Тому досвідчений читач не зупиняється на кожній літері, а схоплює слово цілком.
+
+Середня доросла людина читає близько двохсот–двохсот п'ятдесяти слів за хвилину. Сповільнюють читання повернення назад, коли погляд знову біжить до вже прочитаного, і внутрішнє проговорювання, коли ми ніби вимовляємо кожне слово про себе.
+
+Метод, у якому слова з'являються по одному в тому самому місці, прибирає зайві стрибки очей. Погляд стоїть на місці, а текст сам приходить до нього. Червона літера показує, куди дивитися: це оптимальна точка розпізнавання, трохи лівіше від середини слова.
+
+Але швидкість має сенс лише разом із розумінням. Якщо слова мелькають, а зміст губиться, варто сповільнитися. Найкращий результат — найбільша швидкість, на якій ти ще пам'ятаєш, про що читав.`,
+q:[["Як науковці називають стрибки очей під час читання?","Саккади","Фіксації","Регресії"],
+   ["Скільки приблизно триває одна фіксація?","Близько чверті секунди","Близько двох секунд","Тисячну частку секунди"],
+   ["Що показує червона літера?","Куди дивитися, щоб упізнати слово","Наголос у слові","Початок нового речення"]] },
+
+{ id:"uk-solar", lang:"uk", title:"Сонце в розетці", body:
+`У 1839 році дев'ятнадцятирічний французький фізик Едмон Беккерель помітив дивну річ: якщо на певні матеріали падає світло, у них з'являється слабкий електричний струм. Так відкрили фотоелектричний ефект, на якому сьогодні працюють сонячні панелі.
+
+Минуло понад сто років, перш ніж це відкриття стало корисним. У 1954 році в американських лабораторіях Bell створили перший практичний кремнієвий сонячний елемент. Він перетворював на електрику лише кілька відсотків світла, зате працював без палива і без рухомих частин.
+
+Сучасна панель складається з десятків таких елементів, з'єднаних між собою. Найпоширеніші панелі перетворюють на електрику приблизно п'яту частину сонячної енергії, що на них падає. Решта відбивається або йде на нагрівання. Цікаво, що в спеку панелі працюють трохи гірше: чим вони гарячіші, тим менша їхня напруга.
+
+Панелі дають постійний струм, а в розетках будинків — змінний. Тому між ними стоїть інвертор. Він перетворює струм, стежить за мережею і шукає режим, у якому панелі віддають найбільшу потужність. Якщо додати акумулятор, частину денної енергії можна зберегти на вечір.
+
+Сонячна станція на даху не шумить і майже не потребує догляду. Головне — чисті панелі, правильний нахил і відсутність тіні, адже навіть тінь від комина може помітно знизити вироблення.`,
+q:[["Хто відкрив фотоелектричний ефект?","Едмон Беккерель","Нікола Тесла","Томас Едісон"],
+   ["Яку частину сонячної енергії перетворюють на електрику поширені сучасні панелі?","Приблизно п'яту","Майже всю","Половину"],
+   ["Навіщо потрібен інвертор?","Перетворює постійний струм на змінний","Охолоджує панелі в спеку","Очищає панелі від пилу"]] },
+
+{ id:"uk-bees", lang:"uk", title:"Танець бджіл", body:
+`Бджола-розвідниця знайшла поле квітів за кілометр від вулика. Як розповісти про це іншим, якщо в бджіл немає слів? Вона танцює.
+
+Повернувшись, розвідниця на стільнику біжить прямою лінією і швидко виляє черевцем, потім робить коло, повертається до початку і повторює. Цей рух назвали виляльним танцем. Його розшифрував австрійський учений Карл фон Фріш. За дослідження поведінки бджіл він у 1973 році отримав Нобелівську премію разом з Конрадом Лоренцом і Ніколасом Тінбергеном.
+
+Напрямок прямої частини танцю показує, куди летіти. Усередині вулика темно, а стільники розташовані вертикально, тож бджола використовує силу тяжіння. Рух угору означає «летіти прямо на сонце». Якщо пряма відхилена на сорок градусів праворуч, то й квіти лежать на сорок градусів праворуч від сонця.
+
+Тривалість виляння повідомляє відстань: що довше бджола виляє, то далі треба летіти. А запах квітів на її тілі підказує, що саме шукати. Для зовсім близьких квітів бджоли виконують простіший круговий танець.
+
+Сонце протягом дня рухається небом, і бджоли це враховують: розвідниця змінює кут танцю, навіть якщо пробула у вулику кілька годин. Маленький мозок комахи робить те, що людям вдається лише з картою і компасом.`,
+q:[["Хто розшифрував танець бджіл?","Карл фон Фріш","Чарлз Дарвін","Луї Пастер"],
+   ["Що означає рух бджоли прямо вгору по стільнику?","Летіти прямо на сонце","Повертатися до вулика","Квіти зовсім поруч"],
+   ["Як бджола повідомляє відстань до квітів?","Тривалістю виляння","Кольором черевця","Кількістю кіл"]] },
+
+{ id:"uk-vernadsky", lang:"uk", title:"Українська станція в Антарктиді", body:
+`На маленькому острові Галіндез біля Антарктичного півострова стоїть українська полярна станція «Академік Вернадський». Раніше вона належала Великій Британії й називалася «Фарадей». У 1996 році британці передали її Україні за символічний один фунт стерлінгів.
+
+Станція має славну історію. Вимірювання на «Фарадеї» та ще одній британській станції допомогли науковцям у 1985 році виявити озонову діру над Антарктидою. Це відкриття вплинуло на весь світ: держави домовилися відмовитися від речовин, що руйнують озоновий шар.
+
+Сьогодні на станції цілий рік працює українська експедиція. Полярники стежать за погодою, озоном, магнітним полем Землі, вивчають льодовики, морських тварин і рослини. Зміна триває близько року, і весь цей час навколо лише сніг, океан і пінгвіни.
+
+Біля станції гніздяться пінгвіни, а взимку острів оточує лід. У середині зими день триває лише кілька годин, а влітку ночі майже білі. Поряд височіють гори, що спускаються просто в океан, і повз острів пропливають величезні айсберги.
+
+Щоб потрапити на станцію, полярники долають півсвіту: літаком до Південної Америки, а потім кораблем через одну з найбурхливіших проток світу — протоку Дрейка.`,
+q:[["Як раніше називалася станція «Академік Вернадський»?","«Фарадей»","«Ньютон»","«Дарвін»"],
+   ["За яку ціну Британія передала станцію Україні?","За символічний один фунт","За мільйон доларів","За сто тисяч фунтів"],
+   ["Яку протоку долають полярники дорогою до станції?","Протоку Дрейка","Босфор","Ла-Манш"]] },
+
+{ id:"uk-grid", lang:"uk", title:"Від генератора до розетки", body:
+`Коли ти вмикаєш чайник, електрика вже пройшла довгий шлях. Він починається на електростанції, де генератор перетворює обертання турбіни на електричний струм. Турбіну крутить пара, вода або вітер, а сонячні станції виробляють струм узагалі без обертання.
+
+Передавати енергію на сотні кілометрів при низькій напрузі невигідно: дроти сильно нагріваються, і частина енергії просто зникає. Тому біля станції стоїть підвищувальний трансформатор. Він піднімає напругу до сотень тисяч вольт. Що вища напруга, то менший струм для тієї самої потужності, а отже, і менші втрати.
+
+Високовольтні лінії приводять енергію до підстанцій. Там напругу знижують крок за кроком: спершу для міських мереж, потім до чотирьохсот вольт між фазами на трансформаторі біля будинку. У квартиру приходить одна фаза з напругою двісті тридцять вольт.
+
+Мережа працює як один величезний механізм. Генератори всієї енергосистеми обертаються синхронно, а частота струму в Україні та Європі — п'ятдесят герц. Якщо споживання раптом зростає, частота трохи падає, і диспетчери мають швидко додати потужність. Якщо виробництво перевищує попит, навпаки, частина станцій мусить зменшити вироблення.
+
+Енергію досі складно зберігати у великих обсягах, тому виробництво й споживання мають збігатися щомиті. Саме для цього сьогодні будують великі акумуляторні системи, які за частки секунди віддають або забирають потужність.`,
+q:[["Навіщо біля електростанції підвищують напругу?","Щоб зменшити втрати під час передачі","Щоб струм став постійним","Щоб генератор обертався швидше"],
+   ["Яка частота струму в енергосистемі України?","50 Гц","60 Гц","230 Гц"],
+   ["Що відбувається з частотою, коли споживання раптово зростає?","Вона трохи падає","Вона різко зростає","Нічого не змінюється"]] },
+
+{ id:"uk-fungi", lang:"uk", title:"Гриб, якого не видно", body:
+`Те, що грибник кладе в кошик, — лише мала частина гриба. Справжнє його тіло ховається під землею. Це грибниця, або міцелій: мережа тонких ниток, які тягнуться в ґрунті на метри, а іноді й на сотні метрів.
+
+Гриби, які ми бачимо, — це плодові тіла. Їхнє завдання — розсіяти спори, з яких виростуть нові грибниці. Одне плодове тіло може випустити мільйони спор. Вітер, вода й тварини розносять їх далеко від місця, де вони з'явилися.
+
+Багато лісових грибів живуть у тісній дружбі з деревами. Нитки грибниці обплітають корені й допомагають деревам добувати з ґрунту воду та мінеральні речовини. Натомість дерево ділиться з грибом цукрами, які утворюються в листі. Такий союз називають мікоризою. Саме тому білі гриби шукають під дубами, соснами, ялинами чи березами, а підберезники — під березами.
+
+Грибниця — ще й важливий прибиральник лісу. Вона розкладає опале листя, гілки й мертву деревину, повертаючи поживні речовини в ґрунт. Без грибів ліс швидко потонув би у власних рештках.
+
+Збираючи гриби, краще не виривати їх, а акуратно викручувати чи зрізати, не руйнуючи лісової підстилки. Тоді грибниця житиме далі й наступного року знову подарує врожай. І неодмінно бери лише ті гриби, які знаєш напевно.`,
+q:[["Як називається підземна частина гриба?","Грибниця, або міцелій","Плодове тіло","Кора"],
+   ["Що дерево дає грибу в мікоризі?","Цукри, утворені в листі","Мінеральні солі з каменів","Нічого не дає"],
+   ["Як краще збирати гриби?","Акуратно викручувати чи зрізати","Вириваючи з корінням","Розгрібаючи підстилку граблями"]] },
+
+{ id:"uk-bike", lang:"uk", title:"Двоколісна історія", body:
+`Перший велосипед не мав педалей. У 1817 році німецький винахідник Карл Драйс збудував дерев'яну машину з двома колесами й кермом. Їздець сидів на ній і відштовхувався ногами від землі, як на сучасному біговелі для малюків. Машину назвали дрезиною на честь винахідника.
+
+Педалі з'явилися через кілька десятиліть, у 1860-х роках. Їх прикріпили просто до осі переднього колеса. За один оберт педалей велосипед проїжджав рівно стільки, скільки становить обвід колеса. Щоб їхати швидше, переднє колесо почали робити дедалі більшим. Так виник «пенні-фартинг» з величезним переднім і крихітним заднім колесом. На ньому було високо сидіти і легко впасти через кермо.
+
+Справжню революцію зробив ланцюг. У 1885 році англієць Джон Кемп Старлі показав велосипед «Ровер» з однаковими колесами і ланцюговим приводом на заднє колесо. Його називали безпечним велосипедом, і саме він став прообразом усіх сучасних.
+
+Невдовзі додали надувні шини, які зробили їзду м'якою, а згодом і перемикачі передач. Велосипед змінив життя мільйонів людей: він був дешевшим за коня і давав свободу пересуватися на десятки кілометрів.
+
+Сьогодні до велосипеда додали електромотор і акумулятор, але основа лишилася тією самою: рама, два колеса й людина, яка тримає рівновагу.`,
+q:[["Чим вирізнявся перший велосипед Карла Драйса?","Не мав педалей","Мав три колеса","Мав мотор"],
+   ["Навіщо у «пенні-фартинга» робили величезне переднє колесо?","Щоб їхати швидше","Щоб легше гальмувати","Щоб возити вантажі"],
+   ["Що зробило «безпечний велосипед» прообразом сучасних?","Однакові колеса і ланцюговий привід","Дерев'яна рама","Педалі на передньому колесі"]] },
+
+{ id:"uk-sleep", lang:"uk", title:"Навіщо мозку сон", body:
+`Третину життя ми проводимо уві сні, і це не марнування часу. Поки тіло відпочиває, мозок виконує важливу роботу.
+
+За ніч сон проходить кілька циклів, кожен приблизно по півтори години. На початку циклу сон стає дедалі глибшим: дихання сповільнюється, м'язи розслабляються, а мозок працює повільними хвилями. Наприкінці настає фаза швидкого сну. Очі під повіками швидко рухаються, мозок стає майже таким активним, як удень, і саме тоді ми бачимо найяскравіші сни.
+
+Науковці вважають, що уві сні мозок упорядковує все, що людина дізналася за день. Нові знання й навички закріплюються, а зайве відсіюється. Тому після гарного сну вивчене пам'ятається краще, ніж після безсонної ночі над підручником.
+
+Сон допомагає й очищати мозок. Під час глибокого сну рідина активніше омиває нервову тканину і виносить продукти обміну речовин, що накопичилися за день.
+
+Дорослим зазвичай радять спати сім–дев'ять годин. Брак сну погіршує увагу, пам'ять і настрій, а водій, який не виспався, реагує повільніше. Щоб легше заснути, варто лягати в той самий час, провітрювати кімнату й відкладати телефон за годину до сну: яскраве світло екрана заважає мозку налаштуватися на відпочинок.`,
+q:[["Скільки приблизно триває один цикл сну?","Півтори години","Десять хвилин","Чотири години"],
+   ["Коли ми бачимо найяскравіші сни?","У фазі швидкого сну","Одразу після засинання","У фазі глибокого сну"],
+   ["Скільки годин зазвичай радять спати дорослим?","Сім–дев'ять","Чотири–п'ять","Дванадцять"]] },
+
+{ id:"en-gps", lang:"en", title:"How GPS Finds You", body:
+`A GPS receiver in your phone does not send anything to space. It only listens. Around the Earth, about thirty navigation satellites circle at an altitude of roughly twenty thousand kilometres. Each one constantly broadcasts its position and the exact time from an atomic clock on board.
+
+The signal travels at the speed of light, so it reaches your phone a tiny fraction of a second later. By comparing the time in the message with its own clock, the receiver works out how far away the satellite is. One satellite tells you that you are somewhere on a huge sphere. Three satellites narrow it down to a single point.
+
+There is a catch. The cheap clock inside a phone is not nearly as precise as an atomic clock, and an error of one millionth of a second means an error of three hundred metres. So the receiver uses a fourth satellite to calculate and cancel its own clock error. That is why a phone needs at least four satellites for a reliable fix.
+
+Even Einstein plays a role. Clocks on fast-moving satellites far from Earth's gravity run at a slightly different rate than clocks on the ground. Engineers correct for this effect, otherwise positions would drift by kilometres every day.
+
+Today phones also use the European Galileo system and others, which is why a fix in a forest or on a city street is faster and more accurate than ever.`,
+q:[["What does a GPS receiver in a phone send to the satellites?","Nothing, it only listens","Its position","A request for the time"],
+   ["Why does a phone need a fourth satellite?","To cancel its own clock error","To measure the height of the sea","To save battery"],
+   ["How large is the position error caused by a clock error of one millionth of a second?","About three hundred metres","About three metres","About three kilometres"]] },
+
+{ id:"en-octopus", lang:"en", title:"Three Hearts and Blue Blood", body:
+`An octopus looks like a creature from another planet, and in many ways it lives by different rules.
+
+It has three hearts. Two of them pump blood through the gills, where it picks up oxygen. The third sends that blood to the rest of the body. Curiously, this main heart stops beating while the octopus swims, which is one reason these animals prefer crawling to swimming.
+
+Its blood is blue. Instead of iron-based haemoglobin, octopus blood carries oxygen with a copper-based protein called haemocyanin. It works well in cold water with little oxygen, which suits life on the sea floor.
+
+The octopus brain is also unusual. The animal has around five hundred million nerve cells, but most of them are not in its head. They are spread through its eight arms. Each arm can taste, touch and make simple decisions on its own, while the central brain gives general commands.
+
+Octopuses are famous problem solvers. In aquariums they unscrew jar lids, escape through tiny gaps and recognise individual keepers. Their skin can change colour and texture in a fraction of a second, even though, as far as scientists know, they cannot see colour the way we do.
+
+All this intelligence comes with a short life. Most species live only one or two years, so every octopus has to learn about the world almost from scratch.`,
+q:[["How many hearts does an octopus have?","Three","One","Eight"],
+   ["Why is octopus blood blue?","It carries oxygen with a copper-based protein","It contains a lot of salt","It reflects the colour of the sea"],
+   ["Where are most of an octopus's nerve cells?","In its arms","In its head","In its hearts"]] },
+
+{ id:"en-photo", lang:"en", title:"The First Photograph", body:
+`The oldest surviving photograph taken with a camera shows nothing more exciting than a few rooftops. Yet it changed how people see the world.
+
+It was made around 1826 or 1827 by the French inventor Joseph Nicéphore Niépce. From an upstairs window of his house in Burgundy he pointed a camera at the courtyard. Inside the camera was a metal plate coated with a kind of natural asphalt, which slowly hardens in light. The exposure lasted many hours, perhaps even days. That is why the sun seems to light both sides of the buildings at once.
+
+After the exposure Niépce washed the plate with a solvent. The hardened asphalt stayed, while the soft parts dissolved, leaving a faint picture of roofs, a tree and a barn.
+
+Niépce later worked with the artist Louis Daguerre. After Niépce died, Daguerre developed a much faster process. In 1839 the daguerreotype was presented to the public in Paris, and photography spread around the world within months.
+
+Exposure times kept shrinking, from minutes to seconds and finally to tiny fractions of a second. Today a phone takes dozens of pictures in the time Niépce needed to capture one. His plate is now kept at the University of Texas: a small grey rectangle that started the visual age.`,
+q:[["Who made the oldest surviving camera photograph?","Joseph Nicéphore Niépce","Louis Daguerre","Thomas Edison"],
+   ["Why does the sun seem to light both sides of the buildings?","The exposure lasted many hours","Niépce used two cameras","The plate was painted by hand"],
+   ["When was the daguerreotype presented to the public?","In 1839","In 1789","In 1901"]] }
+];
+/* ===== Спільне: стан, збереження, тости, діалоги, RSVP-рушій ===== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const KEY = "speedread-v1";
+const DEF = { tab:"test",
+  set:{ wpm:300, chunk:1, pauses:true, ramp:false, rampTo:500, font:"sans", fs:40, lang:"uk", sSize:5, sShuf:false },
+  cur:"uk-eyes", pos:{}, custom:[], tests:[], used:[],
+  read:{ words:0, ms:0, days:{} },
+  schulte:{ best:{}, runs:{} } };
+function merge(d, s){ for(const k in s){ const a=d[k], b=s[k];
+  if(b && typeof b==="object" && !Array.isArray(b) && a && typeof a==="object" && !Array.isArray(a)) merge(a,b); else d[k]=b; } return d; }
+function loadState(){ const d=JSON.parse(JSON.stringify(DEF)); try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&typeof s==="object") return merge(d,s); }catch(e){} return d; }
+let ST = loadState();
+let saveT = 0;
+function save(){ clearTimeout(saveT); try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){} }
+function saveSoon(){ clearTimeout(saveT); saveT=setTimeout(save,400); }
+
+let toastT = 0;
+function toast(msg, cls=""){ const t=$("toast"); t.textContent=msg; t.className="toast "+cls; t.style.opacity=1; clearTimeout(toastT); toastT=setTimeout(()=>t.style.opacity=0,2600); }
+
+/* Діалог: buttons = [{l:"Текст", v:значення, cls:"primary"}] → Promise(значення або null) */
+function dialog(html, buttons){ return new Promise(res=>{ const m=$("dlg"), c=$("dlgCard");
+  c.innerHTML = html + `<div class="row end">${buttons.map((b,i)=>`<button class="btn ${b.cls||""}" data-dlg="${i}">${esc(b.l)}</button>`).join("")}</div>`;
+  m.hidden=false; const f=c.querySelector(".btn.primary,.btn.danger"); if(f) f.focus();
+  const done=v=>{ m.hidden=true; m.onclick=null; document.removeEventListener("keydown",kd); res(v); };
+  const kd=e=>{ if(e.key==="Escape") done(null); };
+  document.addEventListener("keydown",kd);
+  m.onclick=e=>{ const b=e.target.closest("[data-dlg]"); if(b) done(buttons[+b.dataset.dlg].v); else if(e.target===m) done(null); }; }); }
+const ask = (title, text, ok, danger) => dialog(`<h2>${esc(title)}</h2><p>${esc(text)}</p>`, [{l:"Скасувати",v:false},{l:ok,v:true,cls:danger?"danger":"primary"}]);
+
+const fmtD = s => String(s).split("-").reverse().join(".");
+const dayKey = (t=Date.now()) => { const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+const fmtDate = t => { const d=new Date(t); return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}`; };
+const fmtDT = t => { const d=new Date(t); return `${fmtDate(t)}.${d.getFullYear()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+const fmtDur = ms => { const s=Math.max(0,Math.round(ms/1000)); return s<60?`${s} с`:`${Math.floor(s/60)} хв ${String(s%60).padStart(2,"0")} с`; };
+const fmtClock = ms => { const s=Math.max(0,ms)/1000; return `${Math.floor(s/60)}:${(s%60).toFixed(1).padStart(4,"0")}`; };
+const fmtN = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const plural = (n, a, b, c) => { const m10=n%10, m100=n%100; return m10===1&&m100!==11?a: m10>=2&&m10<=4&&(m100<12||m100>14)?b:c; };
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+/* Утримання екрана ввімкненим під час читання */
+let wakeL = null;
+async function wakeOn(){ try{ if("wakeLock" in navigator && !wakeL){ wakeL=await navigator.wakeLock.request("screen"); wakeL.addEventListener("release",()=>{ wakeL=null; }); } }catch(e){} }
+function wakeOff(){ try{ if(wakeL) wakeL.release(); }catch(e){} wakeL=null; }
+
+/* ---------- Текст → слова ---------- */
+const DASH = /^[—–\-…]+$/;
+function tokenize(body){
+  const paras = String(body||"").replace(/\r/g,"").split(/\n\s*\n+|\n(?=\s*[—–-]\s)/).map(p=>p.replace(/\s+/g," ").trim()).filter(Boolean);
+  const toks=[];
+  paras.forEach((p,pi)=>{ let pend="";
+    for(const w of p.split(" ")){
+      if(DASH.test(w)){ const last=toks[toks.length-1]; if(last && last.p===pi) last.w+=" "+w; else pend+=w+" "; continue; }
+      toks.push({ w:pend+w, p:pi }); pend=""; }
+    if(toks.length && toks[toks.length-1].p===pi) toks[toks.length-1].pe=true; });
+  return toks;
+}
+const wordCount = body => tokenize(body).length;
+const SENT = /[.!?…]["»”’)\]]*$/;
+const CLAUSE = /[,;:—–\-]["»”’)\]]*$/;
+const coreLen = w => [...w.replace(/[^\p{L}\p{N}]/gu,"")].length;
+function multOf(t, single){
+  let m = SENT.test(t.w) ? 2 : CLAUSE.test(t.w) ? 1.5 : 1;
+  if(single && m===1){ const L=coreLen(t.w); m = L>=13 ? 1.4 : L>=9 ? 1.2 : 1; }
+  if(t.pe) m = Math.max(m, 2.6);
+  return m;
+}
+/* Кадри: 1–3 слова; кадр не перетинає кінець речення й абзацу. norm вирівнює середню швидкість до заданої. */
+function buildFrames(toks, chunk, pauses){
+  const fr=[]; let i=0;
+  while(i<toks.length){ let j=i;
+    while(j-i+1<chunk && j+1<toks.length && !SENT.test(toks[j].w) && !toks[j].pe && toks[j+1].p===toks[i].p) j++;
+    const n=j-i+1;
+    fr.push({ s:i, e:j, n, text:toks.slice(i,j+1).map(t=>t.w).join(" "), m: pauses ? multOf(toks[j], n===1) : 1 });
+    i=j+1; }
+  let a=0, b=0; for(const f of fr){ a+=f.n*f.m; b+=f.n; }
+  return { fr, norm: a ? b/a : 1 };
+}
+/* Опорна літера (ORP): трохи лівіше від середини слова */
+function splitOrp(word){
+  const ch=[...word]; const m=word.match(/^([^\p{L}\p{N}]*)(.*?)([^\p{L}\p{N}]*)$/u);
+  const lead=m?[...m[1]].length:0, core=m?[...m[2]].length:ch.length;
+  if(!core){ const k=Math.floor((ch.length-1)/2); return [ch.slice(0,k).join(""), ch[k]||"", ch.slice(k+1).join("")]; }
+  const k = core<=1?0: core<=5?1: core<=9?2: core<=13?3: 4;
+  const idx = lead+k; return [ch.slice(0,idx).join(""), ch[idx], ch.slice(idx+1).join("")];
+}
+
+/* ---------- Вікно читалки ---------- */
+function View(root){
+  root.innerHTML = `<div class="ret t"></div><div class="ret b"></div><div class="word"><span class="wl"></span><span class="wp"></span><span class="wr"></span></div><div class="cap"></div><div class="spd mono"></div><div class="overlay" hidden></div>`;
+  const W=root.querySelector(".word"), L=W.children[0], P=W.children[1], R=W.children[2];
+  const V = { root, cap:root.querySelector(".cap"), spd:root.querySelector(".spd"), over:root.querySelector(".overlay"), fs:40, last:null };
+  const PIV = .38;
+  V.setFont = (font, fs) => { root.classList.toggle("f-serif", font==="serif"); root.classList.toggle("f-mono", font==="mono"); V.fs=fs; if(V.last) V.show(...V.last); };
+  V.show = (text, single, dim) => {
+    V.last=[text, single, dim];
+    const cw=root.clientWidth, x=Math.round(cw*PIV);
+    root.style.setProperty("--px", x+"px");
+    W.classList.toggle("dim", !!dim);
+    W.style.fontSize = V.fs+"px";
+    if(single){ const [a,b,c]=splitOrp(text); L.textContent=a; P.textContent=b; R.textContent=c; }
+    else { L.textContent=text; P.textContent=""; R.textContent=""; }
+    let lw=L.offsetWidth, pw=P.offsetWidth, rw=R.offsetWidth, sc=1;
+    if(single){ const nl=lw+pw/2, nr=rw+pw/2; sc=Math.min(1, nl>0?(x-10)/nl:1, nr>0?(cw-x-10)/nr:1); }
+    else sc=Math.min(1, (cw-24)/Math.max(1,lw));
+    if(sc<1){ W.style.fontSize=(V.fs*sc).toFixed(1)+"px"; lw=L.offsetWidth; pw=P.offsetWidth; }
+    const tx = single ? x - lw - pw/2 : (cw - L.offsetWidth)/2;
+    W.style.transform = `translate(${tx.toFixed(1)}px,-50%)`;
+  };
+  V.clear = () => { V.last=null; L.textContent=P.textContent=R.textContent=""; };
+  V.speed = (w, flash) => { V.spd.textContent = w ? `${w} слів/хв` : ""; if(flash){ V.spd.classList.remove("flash"); void V.spd.offsetWidth; V.spd.classList.add("flash"); } };
+  V.overlay = html => { if(html==null){ V.over.hidden=true; V.over.innerHTML=""; } else { V.over.innerHTML=html; V.over.hidden=false; } };
+  V.refit = () => { if(V.last) V.show(...V.last); };
+  return V;
+}
+
+/* ---------- Програвач ---------- */
+function Player(view){
+  const P = { toks:[], fr:[], norm:1, fi:0, playing:false, timer:0, next:0, chunk:1, pauses:true,
+    speed:()=>300, onFrame:null, onEnd:null };
+  P.frameOf = t => { let lo=0, hi=P.fr.length-1; while(lo<=hi){ const mid=(lo+hi)>>1, f=P.fr[mid]; if(t<f.s) hi=mid-1; else if(t>f.e) lo=mid+1; else return mid; } return Math.min(Math.max(lo,0), P.fr.length); };
+  P.load = (toks, chunk, pauses, startTok=0) => { P.pause(); P.toks=toks; P.chunk=chunk; P.pauses=pauses; const b=buildFrames(toks,chunk,pauses); P.fr=b.fr; P.norm=b.norm; P.fi=P.frameOf(startTok); };
+  P.rebuild = (chunk, pauses) => { const was=P.playing, t=P.tok(); P.load(P.toks, chunk, pauses, t); P.showCur(); if(was) P.play(); };
+  P.tok = () => P.fr[P.fi] ? P.fr[P.fi].s : P.toks.length;
+  P.done = () => P.fi >= P.fr.length;
+  P.delay = (f, w) => 60000 / w * f.n * f.m * P.norm;
+  P.showCur = () => { const f=P.fr[P.fi]; if(f) view.show(f.text, f.n===1); };
+  function tick(){
+    if(!P.playing) return;
+    const f=P.fr[P.fi];
+    if(!f){ P.playing=false; P.onEnd && P.onEnd(); return; }
+    view.show(f.text, f.n===1);
+    const w=P.speed(f.s); P.onFrame && P.onFrame(f, w);
+    const now=performance.now(); if(now-P.next>250) P.next=now;
+    P.next += P.delay(f, w); P.fi++;
+    P.timer = setTimeout(tick, Math.max(0, P.next-performance.now()));
+  }
+  P.play = () => { if(P.playing || !P.fr.length) return; if(P.done()) P.fi=0; P.playing=true; P.next=performance.now(); tick(); };
+  P.pause = () => { if(!P.playing) return; P.playing=false; clearTimeout(P.timer); if(P.fi>0) P.fi--; };
+  P.stop = () => { P.playing=false; clearTimeout(P.timer); };
+  P.seekTok = t => { const was=P.playing; P.pause(); P.fi=P.frameOf(Math.max(0,Math.min(t,P.toks.length-1))); P.showCur(); if(was) P.play(); };
+  /* межі речень для «назад/вперед» */
+  P.sentStart = t => { let i=t; while(i>0 && !SENT.test(P.toks[i-1].w) && !P.toks[i-1].pe) i--; return i; };
+  P.prevSent = () => { const t=P.tok(); let s=P.sentStart(Math.min(t,P.toks.length-1)); if(t-s<2 && s>0) s=P.sentStart(s-1); P.seekTok(s); };
+  P.nextSent = () => { let i=P.tok(); while(i<P.toks.length-1 && !SENT.test(P.toks[i].w) && !P.toks[i].pe) i++; if(i<P.toks.length-1) P.seekTok(i+1); };
+  P.leftMs = w => { let ms=0; for(let i=P.fi;i<P.fr.length;i++) ms+=P.delay(P.fr[i], w); return ms; };
+  return P;
+}
+
+/* ---------- Запитання на розуміння (спільні для тесту й читання) ---------- */
+function runQuiz(box, text, onDone){
+  const qs = text.q.map(q=>({ t:q[0], ok:q[1], opts:shuffle(q.slice(1)) }));
+  let k=0, good=0;
+  const isEn = text.lang==="en";
+  function draw(){
+    const q=qs[k];
+    box.innerHTML = `<div class="qn">${isEn?"Question":"Запитання"} ${k+1} / ${qs.length}</div><div class="qt">${esc(q.t)}</div>
+      <div class="opts">${q.opts.map((o,i)=>`<button class="btn" data-o="${i}">${esc(o)}</button>`).join("")}</div>`;
+    box.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{
+      const pick=q.opts[+b.dataset.o], right=pick===q.ok; if(right) good++;
+      box.querySelectorAll("[data-o]").forEach(x=>{ x.disabled=true; if(q.opts[+x.dataset.o]===q.ok) x.classList.add("ok"); });
+      if(!right) b.classList.add("bad");
+      setTimeout(()=>{ k++; if(k<qs.length) draw(); else onDone(good, qs.length); }, right?650:1300);
+    });
+  }
+  draw();
+}
+const allTexts = () => TEXTS.concat(ST.custom);
+const textById = id => allTexts().find(t=>t.id===id);
+/* ===== Тест «На якій швидкості ти зламаєшся?» ===== */
+const STEPS = [250,300,375,450,550,700,900];
+const LADDER = [150,200].concat(STEPS);
+const AVG = 250;  // звичайна швидкість дорослого читача
+const goodQ = r => r.n && r.ok/r.n >= 0.66;
+const TestUI = (function(){
+  const V=View($("tReader")), P=Player(V);
+  const T={ text:null, stepLen:1, broke:null, comfort:null, curW:null, running:false, paused:false, cd:0 };
+  const stepAt = i => Math.min(STEPS.length-1, Math.floor(i/T.stepLen));
+  P.speed = i => T.comfort!=null ? T.comfort : STEPS[stepAt(i)];
+  P.onFrame = (f, w) => {
+    if(w!==T.curW){ V.speed(w, T.curW!=null); T.curW=w; }
+    $("tProg").style.width = (100*(f.e+1)/P.toks.length).toFixed(1)+"%";
+    ST.read.words += f.n; ST.read.days[dayKey()] = (ST.read.days[dayKey()]||0) + f.n;
+  };
+  P.onEnd = finish;
+
+  function show(which){ ["tIntro","tRun","tQuiz","tRes"].forEach(id=>$(id).hidden = id!==which); $("main").scrollTop=0; }
+  function intro(){
+    $("tSteps").innerHTML = STEPS.map(s=>`<span class="chip">${s}</span>`).join('<span class="arr">→</span>') + '<span class="hint" style="margin-left:4px">слів/хв</span>';
+    document.querySelectorAll("#tLang button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===ST.set.lang));
+    const r=ST.tests[ST.tests.length-1];
+    $("tLast").innerHTML = r ? `Останній тест (${fmtDate(r.d)}): комфортна <b>${r.cf}</b>, межа <b>${r.br==null?STEPS[STEPS.length-1]+"+":r.br}</b> слів/хв, розуміння <b>${r.ok}/${r.n}</b>` : "";
+    show("tIntro");
+  }
+  function pickText(){
+    const pool=TEXTS.filter(t=>t.lang===ST.set.lang && t.q);
+    let fresh=pool.filter(t=>!ST.used.includes(t.id));
+    if(!fresh.length){ ST.used=ST.used.filter(id=>!pool.some(t=>t.id===id)); fresh=pool; }
+    return fresh[Math.floor(Math.random()*fresh.length)];
+  }
+  function countdown(cb){ let n=3; clearTimeout(T.cd);
+    const step=()=>{ if(n===0){ cb(); return; } V.show(String(n), true, true); n--; T.cd=setTimeout(step, 600); }; step(); }
+  function start(){
+    T.text=pickText(); const toks=tokenize(T.text.body);
+    P.load(toks, 1, true, 0); T.stepLen=Math.ceil(toks.length/STEPS.length);
+    T.broke=null; T.comfort=null; T.curW=null; T.paused=false; T.running=false;
+    show("tRun");
+    V.setFont(ST.set.font, ST.set.fs); V.overlay(null);
+    $("tBreak").textContent="Зламався"; $("tBreak").disabled=false; $("tProg").style.width="0";
+    V.cap.textContent = T.text.title;
+    V.speed(STEPS[0]);
+    T.running=true;
+    countdown(()=>{ wakeOn(); P.play(); });
+  }
+  function brk(){
+    if(!T.running || T.paused || !P.playing) return;
+    const f=P.fr[Math.max(0,P.fi-1)], cur=P.speed(f?f.s:0);
+    const idx=LADDER.indexOf(cur), lower=idx>0?LADDER[idx-1]:LADDER[0];
+    const first = T.broke==null;
+    if(first) T.broke=cur;
+    T.comfort=lower;
+    const b=$("tBreak");
+    if(lower<=LADDER[0]){ b.textContent="Повільніше вже нікуди"; b.disabled=true; } else b.textContent="Знову не встигаю";
+    toast(first ? `Межа: ${cur} слів/хв. Далі — ${lower}` : `Далі — ${lower} слів/хв`, "w");
+  }
+  function pause(){ if(!T.running || T.paused) return; clearTimeout(T.cd); P.pause(); T.paused=true; wakeOff();
+    V.overlay(`<b>Пауза</b><span class="hint">Торкнись, щоб продовжити</span>`); }
+  function resume(){ if(!T.paused) return; T.paused=false; V.overlay(null); countdown(()=>{ wakeOn(); P.play(); }); }
+  function stop(){ clearTimeout(T.cd); P.stop(); T.running=false; T.paused=false; wakeOff(); save(); intro(); }
+  function finish(){
+    T.running=false; wakeOff();
+    if(T.comfort==null) T.comfort=STEPS[STEPS.length-1];
+    show("tQuiz");
+    runQuiz($("tQuiz"), T.text, result);
+  }
+  function result(ok, n){
+    const prevBest = Math.max(0, ...ST.tests.filter(goodQ).map(r=>r.cf));
+    const rec={ d:Date.now(), id:T.text.id, lang:T.text.lang, br:T.broke, cf:T.comfort, ok, n, w:P.toks.length };
+    ST.tests.push(rec); if(!ST.used.includes(rec.id)) ST.used.push(rec.id); save();
+    const eff=Math.round(rec.cf*ok/n), good=goodQ(rec);
+    const li=LADDER.indexOf(rec.cf), lower=li>0?LADDER[li-1]:rec.cf;
+    const train = good ? rec.cf : lower;
+    const times = (rec.cf/AVG).toFixed(1).replace(".",",");
+    let notes="";
+    if(rec.br==null) notes+=`<div class="note ok">Ти не зламався навіть на ${rec.cf} слів/хв. Спробуй «Читання» з вищою швидкістю.</div>`;
+    if(good && prevBest && rec.cf>prevBest) notes+=`<div class="note ok">Новий рекорд комфортної швидкості! Попередній — ${prevBest} слів/хв.</div>`;
+    if(good) notes+= rec.cf>AVG ? `<div class="note">Це приблизно в ${times} раза швидше за звичайне читання (≈${AVG} слів/хв) — і з розумінням.</div>`
+                                : `<div class="note">Звичайна швидкість дорослого читача — близько ${AVG} слів/хв. Тренування в «Читанні» допоможе її підняти.</div>`;
+    else notes+=`<div class="note w">Розуміння низьке: швидкість поки випереджає увагу. Тренуйся на сходинку нижче — ${lower} слів/хв, поки не відповідатимеш на всі запитання.</div>`;
+    $("tRes").innerHTML = `<div class="ph">Результат <span class="hint">${esc(T.text.title)}</span></div>
+      <div class="lbl">Комфортна швидкість</div>
+      <div class="big-res" style="margin:4px 0 12px"><span class="n">${rec.cf}</span><span class="u">слів/хв</span></div>
+      <div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px">
+        <div class="stat"><div class="k">Межа</div><div class="v">${rec.br==null?rec.cf+"+":rec.br}</div><div class="s">«Зламався»</div></div>
+        <div class="stat"><div class="k">Розуміння</div><div class="v">${ok}/${n}</div><div class="s">${Math.round(100*ok/n)}%</div></div>
+        <div class="stat"><div class="k">Ефективна</div><div class="v">${eff}</div><div class="s">× розуміння</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">${notes}</div>
+      <div class="row"><button class="btn primary grow" id="tAgain">Ще раз</button><button class="btn grow" id="tTrain">Тренуватися на ${train}</button></div>`;
+    $("tAgain").onclick=start;
+    $("tTrain").onclick=()=>{ ST.set.wpm=train; save(); App.tab("read"); };
+    show("tRes");
+  }
+  $("tStart").onclick=start;
+  $("tBreak").onclick=brk;
+  $("tStop").onclick=stop;
+  $("tReader").addEventListener("click", ()=>{ if(T.paused) resume(); });
+  $("tLang").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; ST.set.lang=b.dataset.v; save(); intro(); });
+  intro();
+  return { leave:pause, brk, isRunning:()=>T.running && !T.paused, refit:()=>V.refit(), hidden:()=>{ if(T.running) pause(); } };
+})();
+/* ===== Читання: будь-який текст, налаштування, свої тексти ===== */
+const ReadUI = (function(){
+  const V=View($("rReader")), P=Player(V);
+  let text=null, toks=[], sessT=0, rampFrom=0, run={ words:0, ms:0 }, lastW=0;
+  const S=ST.set;
+  const clampW = w => Math.max(100, Math.min(1500, Math.round(w/25)*25));
+  P.speed = i => S.ramp ? Math.min(Math.max(S.rampTo, S.wpm), S.wpm + 25*Math.floor(Math.max(0, i-rampFrom)/40)) : S.wpm;
+  P.onFrame = (f, w) => {
+    if(w!==lastW){ V.speed(w, S.ramp && lastW>0); lastW=w; }
+    ST.pos[text.id]=f.s; run.words+=f.n;
+    ST.read.words+=f.n; ST.read.days[dayKey()]=(ST.read.days[dayKey()]||0)+f.n;
+    meta(f.e+1, w); saveSoon();
+  };
+  P.onEnd = () => { acc(); wakeOff(); ico(); ST.pos[text.id]=0; save(); meta(toks.length, lastW); endPanel(); };
+
+  function acc(){ if(sessT){ const d=performance.now()-sessT; ST.read.ms+=d; run.ms+=d; sessT=0; } }
+  function meta(done, w){
+    const n=toks.length; $("rProg").style.width = n ? (100*done/n).toFixed(1)+"%" : "0";
+    $("rPos").textContent = `${fmtN(done)} / ${fmtN(n)} ${plural(n,"слово","слова","слів")}`;
+    $("rLeft").textContent = done>=n ? "" : `залишилось ~${fmtDur(P.leftMs(w||P.speed(P.tok())))}`;
+  }
+  function ico(){ $("rPlayIco").innerHTML = P.playing ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor" stroke="none"/>' : '<path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/>'; }
+  function idle(){ // показати поточне слово у стані паузи
+    const f=P.fr[P.fi]; if(f) V.show(f.text, f.n===1, true); else V.clear();
+    if(text && f){ ST.pos[text.id]=f.s; saveSoon(); }
+    V.speed(P.speed(P.tok())); lastW=0;
+    meta(f ? f.s : toks.length, 0); ctx();
+  }
+  function setText(id){
+    stopPlay();
+    text=textById(id)||TEXTS[0]; ST.cur=text.id; toks=tokenize(text.body);
+    const pos=ST.pos[text.id]||0;
+    P.load(toks, S.chunk, S.pauses, pos>=toks.length?0:pos);
+    rampFrom=P.tok(); run={ words:0, ms:0 };
+    $("rTitle").textContent=text.title; $("rEnd").hidden=true; $("rQuiz").hidden=true;
+    V.cap.textContent = P.tok()>0 ? "Торкнись, щоб продовжити" : "Торкнись, щоб почати";
+    idle(); save();
+  }
+  function play(){
+    if(!toks.length) return;
+    if(P.done()){ P.fi=0; rampFrom=0; run={ words:0, ms:0 }; }
+    $("rEnd").hidden=true; $("rQuiz").hidden=true; $("rCtxP").hidden=true; V.cap.textContent="";
+    sessT=performance.now(); lastW=0; wakeOn(); P.play(); ico();
+  }
+  function stopPlay(){ if(!P.playing) return; P.pause(); acc(); wakeOff(); ico(); save(); }
+  function pause(){ if(!P.playing) return; stopPlay(); idle(); V.cap.textContent="Пауза"; }
+  const toggle = () => P.playing ? pause() : play();
+  function ctx(){
+    const box=$("rCtxP");
+    if(P.playing || !toks.length || P.tok()===0 || P.done()){ box.hidden=true; return; }
+    const t=Math.min(P.tok(), toks.length-1), pi=toks[t].p;
+    let a=t; while(a>0 && toks[a-1].p===pi && t-a<70) a--;
+    let b=t; while(b<toks.length-1 && toks[b+1].p===pi && b-t<70) b++;
+    const f=P.fr[P.fi], cs=f?f.s:t, ce=f?f.e:t;
+    $("rCtx").innerHTML = (a>0 && toks[a-1].p===pi ? "… " : "") +
+      toks.slice(a,b+1).map((x,k)=>{ const i=a+k; return `<span data-i="${i}" class="${i>=cs&&i<=ce?"cur":i<cs?"done":""}">${esc(x.w)}</span>`; }).join(" ") +
+      (b<toks.length-1 && toks[b+1].p===pi ? " …" : "");
+    box.hidden=false;
+    const cur=$("rCtx").querySelector(".cur"); if(cur){ const c=$("rCtx"); c.scrollTop = cur.offsetTop - c.offsetTop - c.clientHeight/2; }
+  }
+  function endPanel(){
+    const wpm = run.ms>0 ? Math.round(run.words/(run.ms/60000)) : 0;
+    const box=$("rEnd");
+    box.innerHTML = `<div class="ph">Текст прочитано <span class="hint">${esc(text.title)}</span></div>
+      <div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px">
+        <div class="stat"><div class="k">Слів</div><div class="v">${fmtN(run.words)}</div></div>
+        <div class="stat"><div class="k">Час</div><div class="v">${fmtClock(run.ms).replace(/\.\d$/,"")}</div></div>
+        <div class="stat"><div class="k">Середня</div><div class="v">${wpm||"—"}</div><div class="s">слів/хв</div></div>
+      </div>
+      <div class="row">${text.q?`<button class="btn primary grow" id="rCheck">Перевірити розуміння</button>`:""}<button class="btn grow" id="rAgain">Ще раз</button><button class="btn grow" id="rOther">Інший текст</button></div>`;
+    box.hidden=false; V.cap.textContent="Кінець тексту"; V.clear(); $("rCtxP").hidden=true;
+    const ch=$("rCheck"); if(ch) ch.onclick=()=>{ box.hidden=true; const q=$("rQuiz"); q.hidden=false; q.classList.add("qcard");
+      runQuiz(q, text, (ok,n)=>{ q.innerHTML=`<div class="ph">Розуміння: ${ok} з ${n}</div><p class="hint">${ok===n?"Усе правильно — можна пробувати швидше.":ok/n>=0.66?"Добре. Ще кілька текстів на цій швидкості — і можна додавати.":"Варто трохи сповільнитися: −25…50 слів/хв."}</p><div class="row"><button class="btn primary" id="rOther2">Інший текст</button></div>`;
+        $("rOther2").onclick=openPicker; }); };
+    $("rAgain").onclick=()=>{ box.hidden=true; P.fi=0; rampFrom=0; run={words:0,ms:0}; ST.pos[text.id]=0; idle(); V.cap.textContent="Торкнись, щоб почати"; };
+    $("rOther").onclick=openPicker;
+  }
+  /* ---- Налаштування ---- */
+  function setUI(){
+    $("rWpm").value=S.wpm; $("rWpmV").textContent=`${S.wpm} слів/хв`;
+    const pr=(id,v)=>document.querySelectorAll(`#${id} button`).forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===String(v)));
+    pr("rChunk",S.chunk); pr("rFont",S.font); pr("rFs",S.fs);
+    $("rPauses").checked=S.pauses; $("rRamp").checked=S.ramp; $("rRampF").hidden=!S.ramp;
+    $("rRampV").textContent=`${S.rampTo} сл/хв`;
+  }
+  function setW(w){ S.wpm=clampW(w); if(S.rampTo<S.wpm) S.rampTo=S.wpm; rampFrom=P.tok(); setUI(); V.speed(P.speed(P.tok())); if(!P.playing) meta(P.tok(),0); saveSoon(); }
+  $("rWpm").oninput=e=>setW(+e.target.value);
+  $("rSlow").onclick=()=>setW(S.wpm-25);
+  $("rFast").onclick=()=>setW(S.wpm+25);
+  $("rChunk").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; S.chunk=+b.dataset.v; P.rebuild(S.chunk,S.pauses); if(!P.playing) idle(); setUI(); save(); };
+  $("rPauses").onchange=e=>{ S.pauses=e.target.checked; P.rebuild(S.chunk,S.pauses); if(!P.playing) idle(); save(); };
+  $("rRamp").onchange=e=>{ S.ramp=e.target.checked; if(S.rampTo<=S.wpm) S.rampTo=clampW(S.wpm+200); rampFrom=P.tok(); setUI(); if(!P.playing) idle(); save(); };
+  $("rRampDn").onclick=()=>{ S.rampTo=Math.max(S.wpm, clampW(S.rampTo-25)); setUI(); save(); };
+  $("rRampUp").onclick=()=>{ S.rampTo=clampW(S.rampTo+25); setUI(); save(); };
+  $("rFont").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; S.font=b.dataset.v; V.setFont(S.font,S.fs); setUI(); save(); };
+  $("rFs").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; S.fs=+b.dataset.v; V.setFont(S.font,S.fs); setUI(); save(); };
+  $("rPlay").onclick=toggle;
+  $("rReader").addEventListener("click", toggle);
+  $("rPrev").onclick=()=>{ P.prevSent(); if(!P.playing) idle(); };
+  $("rNext").onclick=()=>{ P.nextSent(); if(!P.playing) idle(); };
+  $("rRestart").onclick=()=>{ stopPlay(); P.fi=0; rampFrom=0; run={words:0,ms:0}; ST.pos[text.id]=0; $("rEnd").hidden=true; $("rQuiz").hidden=true; idle(); V.cap.textContent="Торкнись, щоб почати"; save(); };
+  $("rCtx").addEventListener("click", e=>{ const s=e.target.closest("[data-i]"); if(!s) return; P.seekTok(+s.dataset.i); rampFrom=P.tok(); idle(); V.cap.textContent="Пауза"; });
+  $("rPick").onclick=openPicker;
+
+  /* ---- Вибір і додавання текстів ---- */
+  function openPicker(){
+    stopPlay(); if(text) idle();
+    const m=$("dlg"), c=$("dlgCard");
+    const item=t=>{ const n=wordCount(t.body), p=ST.pos[t.id]||0, pc=p>0?Math.min(99,Math.round(100*p/n))+"%":"";
+      return `<div class="titem ${text&&t.id===text.id?"cur":""}" data-id="${esc(t.id)}"><div class="tn"><div>${esc(t.title)}</div><div>${fmtN(n)} ${plural(n,"слово","слова","слів")} · ~${fmtDur(n/S.wpm*60000)} на ${S.wpm}${t.q?" · є запитання":""}</div></div><span class="pc">${pc}</span>${t.custom?`<button class="btn icon ghost" data-del="${esc(t.id)}" title="Видалити" aria-label="Видалити текст"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button>`:""}</div>`; };
+    c.innerHTML = `<h2>Обери текст</h2><div class="tlist">
+      <div class="tgrp">Українською</div>${TEXTS.filter(t=>t.lang==="uk").map(item).join("")}
+      <div class="tgrp">English</div>${TEXTS.filter(t=>t.lang==="en").map(item).join("")}
+      <div class="tgrp">Мої тексти</div>${ST.custom.length?ST.custom.map(item).join(""):`<div class="hint" style="padding:4px 8px">Встав свій текст або відкрий файл .txt — статтю, розділ книжки, конспект.</div>`}
+      </div><div class="row sb"><button class="btn" id="pAdd">+ Свій текст</button><button class="btn primary" id="pClose">Закрити</button></div>`;
+    m.hidden=false;
+    m.onclick = async e => {
+      const del=e.target.closest("[data-del]");
+      if(del){ const t=textById(del.dataset.del); m.hidden=true;
+        if(await ask("Видалити текст?", `«${t.title}» буде видалено з «Моїх текстів».`, "Видалити", true)){
+          ST.custom=ST.custom.filter(x=>x.id!==t.id); delete ST.pos[t.id]; save(); if(text&&text.id===t.id) setText(TEXTS[0].id); }
+        openPicker(); return; }
+      const it=e.target.closest(".titem"); if(it){ m.hidden=true; setText(it.dataset.id); return; }
+      if(e.target.closest("#pAdd")){ editor(); return; }
+      if(e.target.closest("#pClose") || e.target===m) m.hidden=true;
+    };
+  }
+  function editor(){
+    const m=$("dlg"), c=$("dlgCard");
+    c.innerHTML = `<h2>Свій текст</h2>
+      <input type="text" id="eTitle" placeholder="Назва (необов'язково)" maxlength="80">
+      <textarea id="eBody" placeholder="Встав сюди текст для читання"></textarea>
+      <div class="row sb"><label class="btn"><input type="file" id="eFile" accept=".txt,text/plain" hidden>Відкрити .txt</label><span class="hint mono" id="eCnt">0 слів</span></div>
+      <div class="row end"><button class="btn" id="eCancel">Скасувати</button><button class="btn primary" id="eSave">Зберегти й читати</button></div>`;
+    m.hidden=false;
+    const body=$("eBody"), cnt=()=>{ const n=wordCount(body.value); $("eCnt").textContent=`${fmtN(n)} ${plural(n,"слово","слова","слів")}`; };
+    body.oninput=cnt; body.focus();
+    $("eFile").onchange=e=>{ const f=e.target.files[0]; if(!f) return;
+      const rd=(enc,cb)=>{ const r=new FileReader(); r.onload=()=>cb(String(r.result)); r.readAsText(f,enc); };
+      rd("utf-8", s=>{ const fin=s=>{ body.value=s; if(!$("eTitle").value) $("eTitle").value=f.name.replace(/\.[^.]+$/,""); cnt(); };
+        if(s.includes("\uFFFD")) rd("windows-1251", fin); else fin(s); }); };
+    m.onclick = e => {
+      if(e.target.closest("#eCancel") || e.target===m){ m.hidden=true; return; }
+      if(e.target.closest("#eSave")){
+        const b=body.value.trim(), n=wordCount(b);
+        if(n<5){ toast("Додай хоча б кілька речень","w"); return; }
+        const title=$("eTitle").value.trim() || tokenize(b).slice(0,5).map(t=>t.w).join(" ").replace(/[.,;:!?…]+$/,"")+"…";
+        const t={ id:"c"+Date.now().toString(36), title, body:b, lang:/[а-яіїєґ]/i.test(b)?"uk":"en", custom:true };
+        ST.custom.push(t);
+        try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(err){ ST.custom.pop(); toast("Текст завеликий, щоб зберегти його в телефоні. Спробуй коротший уривок.","e"); return; }
+        m.hidden=true; setText(t.id); toast("Текст збережено","ok");
+      }
+    };
+  }
+  V.setFont(S.font, S.fs); setUI();
+  return { enter:()=>{ if(!text) setText(ST.cur); else { setUI(); idle(); V.cap.textContent = P.tok()>0?"Торкнись, щоб продовжити":"Торкнись, щоб почати"; } },
+    leave:()=>{ if(P.playing){ pause(); } }, toggle, prev:()=>{ P.prevSent(); if(!P.playing) idle(); }, next:()=>{ P.nextSent(); if(!P.playing) idle(); },
+    faster:()=>setW(S.wpm+25), slower:()=>setW(S.wpm-25), refit:()=>V.refit() };
+})();
+/* ===== Таблиці Шульте ===== */
+const SchulteUI = (function(){
+  let N=ST.set.sSize, nums=[], next=1, err=0, t0=0, tm=0, running=false;
+  const G=$("sGrid"), O=$("sOver");
+  function fit(){ const w=G.clientWidth||300; const fs=Math.max(12, Math.min(34, w/N*0.38)); G.querySelectorAll("button").forEach(b=>b.style.fontSize=fs+"px"); }
+  function draw(){ G.style.gridTemplateColumns=`repeat(${N},minmax(0,1fr))`; G.innerHTML=nums.map(n=>`<button data-n="${n}" tabindex="${running?0:-1}">${n}</button>`).join(""); fit(); }
+  function best(){ const b=ST.schulte.best[N]; return b?fmtClock(b):"—"; }
+  function stat(){ $("sNext").textContent = next>N*N ? "✓" : next; $("sErr").textContent=err; $("sBest").textContent=`Рекорд ${N}×${N}: ${best()} · спроб: ${ST.schulte.runs[N]||0}`; }
+  function idle(){ running=false; clearInterval(tm); next=1; err=0; nums=[...Array(N*N)].map((_,i)=>i+1); draw(); $("sTime").textContent="0:00.0"; stat();
+    O.innerHTML=`<b>Таблиця ${N}×${N}</b><span class="hint">Знайди числа від 1 до ${N*N}</span><button class="btn primary big" id="sGo" style="margin-top:8px">Старт</button>`; O.hidden=false; }
+  function start(){ next=1; err=0; nums=shuffle([...Array(N*N)].map((_,i)=>i+1)); running=true; draw(); stat(); O.hidden=true;
+    t0=performance.now(); clearInterval(tm); tm=setInterval(()=>$("sTime").textContent=fmtClock(performance.now()-t0),100); }
+  function finish(){
+    running=false; clearInterval(tm); const ms=performance.now()-t0; $("sTime").textContent=fmtClock(ms);
+    const prev=ST.schulte.best[N], rec=!prev||ms<prev; if(rec) ST.schulte.best[N]=Math.round(ms);
+    ST.schulte.runs[N]=(ST.schulte.runs[N]||0)+1; save(); stat();
+    O.innerHTML=`<span class="hint">Таблиця ${N}×${N}${ST.set.sShuf?" · з перемішуванням":""}</span><b style="font-size:30px" class="mono">${fmtClock(ms)}</b>
+      <span class="hint">${rec?(prev?`Новий рекорд! Було ${fmtClock(prev)}`:"Перший результат — це твій рекорд"):`Рекорд: ${fmtClock(prev)}`} · помилок: ${err}</span>
+      <button class="btn primary big" id="sGo" style="margin-top:8px">Ще раз</button>`;
+    O.hidden=false;
+  }
+  G.addEventListener("pointerdown", e=>{
+    const b=e.target.closest("button[data-n]"); if(!b || !running) return; e.preventDefault();
+    const n=+b.dataset.n;
+    if(n===next){ next++; b.classList.remove("bad"); b.classList.add("ok"); setTimeout(()=>b.classList.remove("ok"),180);
+      if(next>N*N){ stat(); finish(); return; }
+      if(ST.set.sShuf){ nums=shuffle(nums); draw(); } }
+    else { err++; b.classList.add("bad"); setTimeout(()=>b.classList.remove("bad"),300); }
+    stat();
+  });
+  O.addEventListener("click", e=>{ if(e.target.closest("#sGo")) start(); });
+  $("sSize").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; N=ST.set.sSize=+b.dataset.v; save(); ui(); idle(); });
+  $("sShuf").onchange=e=>{ ST.set.sShuf=e.target.checked; save(); idle(); };
+  function ui(){ document.querySelectorAll("#sSize button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===String(N))); $("sShuf").checked=ST.set.sShuf; }
+  ui(); idle();
+  return { enter:()=>{ ui(); fit(); stat(); }, leave:()=>{ if(running) idle(); }, refit:fit };
+})();
+/* ===== Прогрес: показники, графік тестів, історія, рекорди Шульте ===== */
+const StatsUI = (function(){
+  const NS="http://www.w3.org/2000/svg";
+  const brV = r => r.br==null ? r.cf : r.br;
+  function kpi(){
+    const good=ST.tests.filter(goodQ), bestC=good.reduce((a,r)=>r.cf>(a?a.cf:0)?r:a,null);
+    const bestB=ST.tests.reduce((a,r)=>brV(r)>(a?brV(a):0)?r:a,null);
+    const today=ST.read.days[dayKey()]||0, days=Object.keys(ST.read.days).length;
+    const mins=Math.round(ST.read.ms/60000);
+    const tile=(k,v,u,s)=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}${u?`<small>${u}</small>`:""}</div><div class="s">${s}</div></div>`;
+    $("kpi").innerHTML =
+      tile("Комфортна швидкість", bestC?bestC.cf:"—", bestC?"сл/хв":"", bestC?`з розумінням · ${fmtDate(bestC.d)}`:"пройди тест") +
+      tile("Межа", bestB?(bestB.br==null?bestB.cf+"+":bestB.br):"—", bestB?"сл/хв":"", bestB?`«Зламався» · ${fmtDate(bestB.d)}`:"ще немає") +
+      tile("Прочитано", fmtN(ST.read.words), plural(ST.read.words,"слово","слова","слів"), `сьогодні ${fmtN(today)}`) +
+      tile("Час читання", mins<60?mins:(mins/60).toFixed(1).replace(".",","), mins<60?"хв":"год", `${days} ${plural(days,"день","дні","днів")} з читанням`);
+  }
+  function chart(){
+    const box=$("chart"); box.innerHTML="";
+    const data=ST.tests.slice(-30);
+    if(data.length<2){ box.innerHTML=`<div class="empty">Пройди тест хоча б двічі, щоб побачити графік</div>`; return; }
+    const W=Math.max(260, box.clientWidth), H=210, m={l:36,r:78,t:12,b:24};
+    const iw=W-m.l-m.r, ih=H-m.t-m.b, n=data.length;
+    const vals=data.flatMap(r=>[r.cf,brV(r)]);
+    let ymax=Math.ceil(Math.max(...vals)/100)*100, ymin=Math.max(0,Math.floor(Math.min(...vals)/100)*100-100);
+    if(ymax-ymin<300) ymax=ymin+300;
+    const step = ymax-ymin<=600?100:200;
+    const X=i=>m.l+(n===1?iw/2:i*iw/(n-1)), Y=v=>m.t+ih-(v-ymin)/(ymax-ymin)*ih;
+    const svg=document.createElementNS(NS,"svg"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("height",H);
+    svg.setAttribute("role","img"); svg.setAttribute("aria-label","Комфортна швидкість і межа в останніх тестах");
+    const el=(tag,attrs,txt)=>{ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; };
+    for(let v=ymin; v<=ymax; v+=step){ el("line",{x1:m.l,x2:m.l+iw,y1:Y(v),y2:Y(v),class:"gl"}); el("text",{x:m.l-6,y:Y(v)+3.5,"text-anchor":"end",class:"ax"},v); }
+    const lab=new Set([0,n-1,Math.round((n-1)/2)]);
+    data.forEach((r,i)=>{ if(lab.has(i)) el("text",{x:X(i),y:H-6,"text-anchor":i===0?"start":i===n-1?"end":"middle",class:"ax"},fmtDate(r.d)); });
+    const series=[{k:"cf",name:"Комфортна",c:"var(--c1)",v:r=>r.cf},{k:"br",name:"Межа",c:"var(--c2)",v:brV}];
+    series.forEach(s=>{ el("path",{d:data.map((r,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(s.v(r)).toFixed(1)}`).join(""),fill:"none",stroke:s.c,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"});
+      if(n<=20) data.forEach((r,i)=>el("circle",{cx:X(i),cy:Y(s.v(r)),r:4,fill:s.c,stroke:"var(--panel)","stroke-width":2})); });
+    // прямі підписи в кінці ліній, без накладання
+    const last=data[n-1]; let y1=Y(last.cf), y2=Y(brV(last));
+    if(Math.abs(y1-y2)<14){ const mid=(y1+y2)/2; if(y1>=y2){ y1=mid+7; y2=mid-7; } else { y1=mid-7; y2=mid+7; } }
+    el("text",{x:X(n-1)+8,y:y1+4,class:"dl"},"Комфортна"); el("text",{x:X(n-1)+8,y:y2+4,class:"dl"},"Межа");
+    const cross=el("line",{x1:0,x2:0,y1:m.t,y2:m.t+ih,stroke:"var(--muted)","stroke-width":1,"stroke-dasharray":"3 3",visibility:"hidden"});
+    const hit=el("rect",{x:m.l-10,y:0,width:iw+20,height:H,fill:"transparent"});
+    const tip=document.createElement("div"); tip.className="tip"; box.appendChild(tip); box.appendChild(svg);
+    function at(clientX){
+      const r=svg.getBoundingClientRect(), x=(clientX-r.left)*W/r.width;
+      pick(Math.max(0,Math.min(n-1,Math.round((x-m.l)/iw*(n-1)))), true);
+    }
+    function pick(i, hover){ const d=data[i];
+      cross.setAttribute("x1",X(i)); cross.setAttribute("x2",X(i)); cross.setAttribute("visibility",hover?"visible":"hidden");
+      tip.innerHTML=""; const dd=document.createElement("div"); dd.className="td"; dd.textContent=`${hover?"":"Останній: "}${fmtDT(d.d)} · ${(textById(d.id)||{}).title||""}`; tip.appendChild(dd);
+      const row=(c,name,val)=>{ const e=document.createElement("div"); e.className="tr"; e.innerHTML=`<i style="background:${c}"></i><span></span><b></b>`; e.children[1].textContent=name; e.children[2].textContent=val; tip.appendChild(e); };
+      row("var(--c1)","Комфортна",`${d.cf} сл/хв`); row("var(--c2)","Межа",`${d.br==null?d.cf+"+":d.br} сл/хв`); row("var(--muted)","Розуміння",`${d.ok}/${d.n}`);
+    }
+    const off=()=>pick(n-1,false);
+    off();
+    hit.addEventListener("pointermove",e=>at(e.clientX)); hit.addEventListener("pointerdown",e=>at(e.clientX)); hit.addEventListener("pointerleave",off);
+  }
+  function hist(){
+    const rows=ST.tests.slice(-40).reverse();
+    $("hist").innerHTML = rows.length ? `<table class="tbl"><thead><tr><th>Дата</th><th>Текст</th><th class="n">Межа</th><th class="n">Комф.</th><th class="n">Розум.</th></tr></thead><tbody>${
+      rows.map(r=>`<tr><td class="mono">${fmtDate(r.d)}</td><td class="tx">${esc((textById(r.id)||{}).title||r.id)}</td><td class="n">${r.br==null?r.cf+"+":r.br}</td><td class="n">${r.cf}</td><td class="n">${r.ok}/${r.n}</td></tr>`).join("")}</tbody></table>`
+      : `<div class="empty">Тут з'являться результати тестів</div>`;
+    const sz=[3,4,5,6,7].filter(k=>ST.schulte.runs[k]);
+    $("sRec").innerHTML = sz.length ? `<table class="tbl"><thead><tr><th>Таблиця</th><th class="n">Рекорд</th><th class="n">Спроб</th></tr></thead><tbody>${
+      sz.map(k=>`<tr><td>${k}×${k}</td><td class="n">${ST.schulte.best[k]?fmtClock(ST.schulte.best[k]):"—"}</td><td class="n">${ST.schulte.runs[k]}</td></tr>`).join("")}</tbody></table>`
+      : `<div class="empty">Ще немає результатів</div>`;
+  }
+  $("resetAll").onclick=async()=>{
+    if(!await ask("Скинути прогрес?","Буде видалено результати тестів, статистику читання, позиції в текстах і рекорди Шульте. Налаштування й «Мої тексти» залишаться.","Скинути",true)) return;
+    ST.tests=[]; ST.used=[]; ST.pos={}; ST.read={words:0,ms:0,days:{}}; ST.schulte={best:{},runs:{}}; save(); render(); toast("Прогрес скинуто","ok");
+  };
+  function render(){ kpi(); chart(); hist(); }
+  return { enter:render, refit:chart };
+})();
+/* ===== Версія, перевірка й встановлення оновлень (як у PanelCraft / EnergyUA Junior) ===== */
+(function(){
+  const cmp = (a,b) => { const x=String(a).split(".").map(Number), y=String(b).split(".").map(Number);
+    for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d; } return 0; };
+  const btn=$("updBtn"), modal=$("upd"); let remote=null;
+  $("ver").textContent=`v${APP.v} · ${fmtD(APP.date)}`;
+  async function fetchRemote(){ const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error(r.status); return r.json(); }
+  function show(mode,info){
+    const isNew=mode==="new";
+    $("updCard").innerHTML=`<h2 id="updTitle">${isNew?"Доступна нова версія":"Що нового"}</h2>
+      <p class="mono upd-v">${isNew?`v${esc(APP.v)} → <b>v${esc(info.v)}</b> від ${fmtD(info.date)}`:`v${esc(info.v)} від ${fmtD(info.date)}`}</p>
+      <ul>${(info.notes||[]).slice(0,8).map(n=>`<li>${esc(n)}</li>`).join("")}</ul>
+      ${isNew?`<p class="hint">Прогрес, рекорди й твої тексти збережуться.</p>`:""}
+      <div class="row end">${isNew?`<button class="btn" data-upd="later">Пізніше</button><button class="btn primary" data-upd="go">Оновити зараз</button>`:`<button class="btn primary" data-upd="later">Закрити</button>`}</div>`;
+    modal.hidden=false; const f=modal.querySelector(".btn.primary"); if(f) f.focus(); }
+  async function check(silent){
+    try{ remote=await fetchRemote();
+      if(cmp(remote.v,APP.v)>0){ btn.classList.add("has"); btn.title=`Доступна версія v${remote.v}`; if(!silent) show("new",remote); }
+      else { btn.classList.remove("has"); btn.title="Перевірити оновлення"; if(!silent) toast(`У тебе остання версія v${APP.v} від ${fmtD(APP.date)}`,"ok"); } }
+    catch(e){ if(!silent) toast("Не вдалося перевірити оновлення. Перевір підключення до інтернету.","w"); } }
+  const swUpdate = () => new Promise((res,rej)=>{ const ch=new MessageChannel(); ch.port1.onmessage=e=>e.data&&e.data.ok?res():rej(new Error("sw"));
+    navigator.serviceWorker.controller.postMessage({type:"update"},[ch.port2]); setTimeout(()=>rej(new Error("timeout")),15000); });
+  async function apply(){ save(); toast("Завантажую нову версію…");
+    if(navigator.serviceWorker&&navigator.serviceWorker.controller){ try{ await swUpdate(); location.reload(); return; }catch(e){ toast("Не вдалося завантажити оновлення. Спробуй пізніше.","w"); return; } }
+    const u=new URL(location.href); u.searchParams.set("v",remote.v); location.replace(u.toString()); }
+  document.addEventListener("click",e=>{
+    if(e.target.closest("#updBtn")){ check(false); return; }
+    if(e.target.closest("#ver")){ show("cur",APP); return; }
+    const b=e.target.closest("[data-upd]"); if(b){ modal.hidden=true; if(b.dataset.upd==="go"&&remote) apply(); return; }
+    if(e.target===modal) modal.hidden=true; });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!modal.hidden) modal.hidden=true; if((e.key==="Enter"||e.key===" ")&&e.target.id==="ver"){ e.preventDefault(); show("cur",APP); } });
+  try{ const last=localStorage.getItem("speedread-ver");
+    if(last&&last!==APP.v) setTimeout(()=>toast(`Оновлено до v${APP.v} від ${fmtD(APP.date)}`,"ok"),600);
+    localStorage.setItem("speedread-ver",APP.v); }catch(e){}
+  try{ const u=new URL(location.href); if(u.searchParams.has("v")){ u.searchParams.delete("v"); history.replaceState(null,"",u.toString()); } }catch(e){}
+  setTimeout(()=>check(true),1500); setInterval(()=>check(true),30*60*1000);
+  if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.host)) navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+/* ===== Вкладки, клавіатура, старт ===== */
+const App = (function(){
+  const MODS = { test:TestUI, read:ReadUI, schulte:SchulteUI, stats:StatsUI };
+  let cur=null;
+  function tab(name){
+    if(!MODS[name]) name="test";
+    if(cur && cur!==name && MODS[cur].leave) MODS[cur].leave();
+    cur=name; ST.tab=name; saveSoon();
+    document.querySelectorAll(".tb").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===name));
+    document.querySelectorAll(".scr").forEach(s=>s.hidden = s.id!=="scr-"+name);
+    $("main").scrollTop=0;
+    if(MODS[name].enter) MODS[name].enter();
+    if(MODS[name].refit) requestAnimationFrame(()=>MODS[name].refit());
+  }
+  document.querySelector(".tbar").addEventListener("click", e=>{ const b=e.target.closest(".tb"); if(b) tab(b.dataset.tab); });
+  document.addEventListener("keydown", e=>{
+    if(e.target.closest("input,textarea,select") || !$("dlg").hidden || !$("upd").hidden){ if(e.key==="Escape" && !$("dlg").hidden) $("dlg").hidden=true; return; }
+    if(e.ctrlKey||e.metaKey||e.altKey) return;
+    if(cur==="test" && (e.key===" "||e.key==="Enter") && TestUI.isRunning()){ e.preventDefault(); TestUI.brk(); return; }
+    if(cur==="read"){
+      if(e.key===" "){ e.preventDefault(); ReadUI.toggle(); }
+      else if(e.key==="ArrowLeft"){ e.preventDefault(); ReadUI.prev(); }
+      else if(e.key==="ArrowRight"){ e.preventDefault(); ReadUI.next(); }
+      else if(e.key==="ArrowUp"){ e.preventDefault(); ReadUI.faster(); }
+      else if(e.key==="ArrowDown"){ e.preventDefault(); ReadUI.slower(); }
+    }
+  });
+  document.addEventListener("visibilitychange", ()=>{ if(document.hidden){ TestUI.hidden(); ReadUI.leave(); SchulteUI.leave(); save(); } });
+  window.addEventListener("pagehide", save);
+  let rt=0; window.addEventListener("resize", ()=>{ clearTimeout(rt); rt=setTimeout(()=>{ const m=MODS[cur]; if(m&&m.refit) m.refit(); },120); });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ const m=MODS[cur]; if(m&&m.refit) m.refit(); });
+  tab(ST.tab);
+  return { tab };
+})();
+</script></body></html>
