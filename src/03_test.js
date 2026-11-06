@@ -15,7 +15,7 @@ const TestUI = (function(){
   };
   P.onEnd = finish;
 
-  function show(which){ ["tIntro","tRun","tQuiz","tRes"].forEach(id=>$(id).hidden = id!==which); $("main").scrollTop=0; }
+  function show(which){ ["tIntro","tRun","tQuiz","tRes"].forEach(id=>$(id).hidden = id!==which); $("tShare").hidden = which!=="tIntro"; $("main").scrollTop=0; }
   function intro(){
     $("tSteps").innerHTML = STEPS.map(s=>`<span class="chip">${s}</span>`).join('<span class="arr">→</span>') + '<span class="hint" style="margin-left:4px">слів/хв</span>';
     document.querySelectorAll("#tLang button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===ST.set.lang));
