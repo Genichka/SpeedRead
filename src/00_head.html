@@ -230,7 +230,67 @@ textarea{min-height:180px;resize:vertical;line-height:1.5}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 32px);background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--blue2);border-radius:var(--r);box-shadow:var(--shadow);padding:9px 12px;font-size:13px;color:var(--fg);opacity:0;pointer-events:none;transition:opacity .25s}
 .toast.e{border-left-color:var(--red)} .toast.ok{border-left-color:var(--green)} .toast.w{border-left-color:var(--orange)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---- Заставка EnergyUA при запуску: інтро → QR застосунку, «Поділитися», група EnergyUA в Telegram, «Пропустити» ---- */
+.eua-spl{position:fixed;inset:0;z-index:2147483000;background:#000;display:grid;place-items:center;overflow:auto;transition:opacity .35s;font-family:Inter,Roboto,"Segoe UI",-apple-system,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+.eua-spl.out{opacity:0;pointer-events:none}
+.eua-spl .eua-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;transition:opacity .45s}
+.eua-spl.card .eua-v{opacity:0}
+.eua-spl .eua-skipv{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:2;background:rgba(255,255,255,.08);color:#ccccdc;border:1px solid rgba(204,204,220,.25);border-radius:999px;padding:9px 18px;font:500 14px inherit;font-family:inherit;cursor:pointer}
+.eua-spl.card .eua-skipv{display:none}
+.eua-spl .eua-card{position:relative;z-index:1;width:min(380px,calc(100vw - 32px));margin:24px 0;padding:22px 20px 16px;background:#181b1f;border:1px solid rgba(204,204,220,.2);border-radius:8px;box-shadow:0 8px 24px rgba(1,4,9,.75);color:#ccccdc;
+  display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;opacity:0;transform:translateY(10px);transition:opacity .45s,transform .45s;visibility:hidden}
+.eua-spl.card .eua-card{opacity:1;transform:none;visibility:visible}
+.eua-spl .eua-brand{display:flex;align-items:center;gap:8px;font-size:28px;font-weight:600;line-height:1.1;letter-spacing:-.3px}
+.eua-spl .eua-brand svg{width:22px;height:30px;flex:none} .eua-spl .eua-b1{color:#8e8e9e} .eua-spl .eua-b2{color:#6e9fff}
+.eua-spl .eua-qr{display:block;background:#fff;padding:8px;border-radius:6px;line-height:0} .eua-spl .eua-qr svg{width:min(200px,52vw)!important;height:auto!important;display:block}
+.eua-spl .eua-s{margin:0;color:#8e8e9e;font-size:13px;line-height:1.4}
+.eua-spl .eua-link{color:#6e9fff;font-size:14px;text-decoration:none;word-break:break-all;font-family:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace} .eua-spl .eua-link:hover{text-decoration:underline}
+.eua-spl .eua-alt{margin:-4px 0 0;color:#8e8e9e;font-size:12.5px} .eua-spl .eua-alt a{color:#6e9fff}
+.eua-spl .eua-note{margin:4px 0 0;color:#ccccdc;font-size:14px;line-height:1.45}
+.eua-spl .eua-btn{min-height:44px;padding:8px 16px;border-radius:6px;background:#22252b;color:#ccccdc;border:1px solid rgba(204,204,220,.2);font:500 15px inherit;font-family:inherit;cursor:pointer}
+.eua-spl .eua-btn:hover{background:#2c3037}
+.eua-spl .eua-tg{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:46px;padding:10px 14px;border-radius:6px;background:#229ed9;color:#fff;font-weight:600;font-size:15px;text-decoration:none}
+.eua-spl .eua-tg:hover{background:#1c8dc3} .eua-spl .eua-tg svg{width:22px;height:22px;flex:none} .eua-spl .eua-tg .u{color:#fade2a}
+.eua-spl .eua-skip{margin-top:4px;width:100%;color:#8e8e9e}
+.eua-spl .eua-toast{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#22252b;color:#fff;border:1px solid rgba(204,204,220,.25);border-radius:6px;padding:9px 14px;font-size:14px;z-index:3;max-width:calc(100vw - 32px)}
+@media (prefers-reduced-motion:reduce){ .eua-spl,.eua-spl .eua-v,.eua-spl .eua-card{transition:none} }
 </style>
+<div class="eua-spl" id="euaSpl" role="dialog" aria-modal="true" aria-label="EnergyUA · SpeedRead">
+  <video class="eua-v" id="euaV" src="intro.mp4" playsinline preload="auto" aria-hidden="true"></video>
+  <button class="eua-skipv" id="euaSkipV" type="button">Пропустити</button>
+  <div class="eua-card" id="euaCard" aria-hidden="true">
+    <div class="eua-brand"><svg viewBox="0 0 20 30" aria-hidden="true"><path d="M13 0 L1 17 H9 L6 30 L19 11 H11 Z" fill="#ffb21f" stroke="#e8741a" stroke-width="1" stroke-linejoin="round"/></svg><span><span class="eua-b1">Speed</span><span class="eua-b2">Read</span></span></div>
+    <a class="eua-qr" href="https://github.com/Genichka/SpeedRead/releases/download/apk-latest/SpeedRead.apk" target="_blank" rel="noopener"><svg width="164" height="164" role="img" aria-label="QR-код: https://github.com/Genichka/SpeedRead/releases/download/apk-latest/SpeedRead.apk" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41"><path fill="#fff" d="M0 0h41v41h-41z"/><path stroke="#111217" d="M2 2.5h7m1 0h4m2 0h1m1 0h3m1 0h1m2 0h1m1 0h2m3 0h7m-37 1h1m5 0h1m1 0h2m1 0h1m3 0h6m5 0h1m3 0h1m5 0h1m-37 1h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h1m3 0h6m1 0h4m1 0h1m1 0h3m1 0h1m-37 1h1m1 0h3m1 0h1m4 0h1m1 0h1m3 0h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h3m1 0h1m-37 1h1m1 0h3m1 0h1m1 0h2m1 0h1m6 0h1m2 0h1m3 0h2m1 0h1m1 0h1m1 0h3m1 0h1m-37 1h1m5 0h1m5 0h2m7 0h3m1 0h1m2 0h1m1 0h1m5 0h1m-37 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-28 1h1m1 0h2m1 0h2m2 0h2m2 0h4m1 0h2m-29 1h1m2 0h6m1 0h3m3 0h2m1 0h1m4 0h1m4 0h1m2 0h1m1 0h3m-36 1h1m2 0h1m2 0h4m1 0h1m5 0h2m1 0h1m1 0h5m3 0h5m-34 1h1m1 0h4m2 0h1m1 0h2m3 0h1m5 0h3m1 0h2m1 0h1m5 0h1m-37 1h2m1 0h2m2 0h2m1 0h6m1 0h1m5 0h1m2 0h1m1 0h1m2 0h6m-37 1h2m1 0h1m2 0h4m1 0h1m4 0h1m2 0h2m2 0h2m2 0h2m1 0h2m4 0h1m-37 1h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h1m1 0h2m1 0h1m4 0h1m2 0h2m4 0h2m-34 1h1m2 0h4m1 0h2m2 0h1m1 0h3m1 0h5m2 0h5m2 0h5m-33 1h2m5 0h3m8 0h1m1 0h1m2 0h2m1 0h2m1 0h3m-36 1h2m1 0h1m1 0h2m2 0h1m3 0h2m1 0h1m3 0h1m1 0h1m2 0h1m1 0h1m2 0h1m3 0h3m-37 1h1m1 0h1m5 0h1m1 0h1m2 0h2m1 0h2m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m2 0h1m-35 1h1m1 0h1m3 0h5m1 0h1m2 0h1m1 0h3m1 0h3m1 0h1m1 0h1m1 0h1m6 0h1m-37 1h1m2 0h1m3 0h2m1 0h1m3 0h1m4 0h1m2 0h4m1 0h4m1 0h1m3 0h1m-33 1h1m1 0h1m1 0h5m2 0h3m1 0h1m2 0h1m1 0h1m3 0h6m-34 1h3m1 0h2m2 0h2m1 0h2m2 0h1m2 0h2m2 0h2m1 0h3m1 0h1m2 0h1m1 0h2m-36 1h1m1 0h1m3 0h1m4 0h1m2 0h5m2 0h4m2 0h2m2 0h1m1 0h1m2 0h1m-37 1h5m2 0h2m2 0h4m2 0h2m1 0h1m10 0h4m1 0h1m-36 1h2m1 0h3m2 0h1m1 0h2m1 0h3m2 0h2m6 0h2m1 0h1m4 0h2m-37 1h2m2 0h1m4 0h1m3 0h2m1 0h1m1 0h1m2 0h1m1 0h1m2 0h2m4 0h3m-35 1h2m1 0h1m2 0h1m3 0h2m2 0h1m1 0h1m2 0h1m6 0h5m1 0h1m2 0h2m-37 1h1m2 0h1m3 0h1m2 0h6m2 0h3m9 0h2m1 0h2m1 0h1m-37 1h1m1 0h1m2 0h2m1 0h3m7 0h1m1 0h5m2 0h10m-29 1h1m1 0h2m3 0h1m2 0h3m6 0h2m3 0h1m1 0h2m-36 1h7m1 0h1m2 0h1m2 0h3m1 0h4m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m3 0h1m-37 1h1m5 0h1m1 0h5m1 0h2m3 0h2m1 0h1m2 0h1m1 0h2m3 0h1m2 0h2m-37 1h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h2m1 0h3m3 0h1m1 0h7m2 0h2m-37 1h1m1 0h3m1 0h1m1 0h4m2 0h1m1 0h3m3 0h2m4 0h3m2 0h4m-37 1h1m1 0h3m1 0h1m3 0h3m2 0h1m4 0h1m2 0h3m1 0h3m2 0h2m2 0h1m-37 1h1m5 0h1m2 0h1m1 0h1m4 0h2m2 0h1m2 0h1m2 0h1m2 0h2m1 0h5m-37 1h7m1 0h3m1 0h1m2 0h1m3 0h1m3 0h2m3 0h1m1 0h2m1 0h1m2 0h1"/></svg></a>
+    <p class="eua-s">Наведи камеру телефона — завантажиться SpeedRead для Android</p>
+    <a class="eua-link" href="https://github.com/Genichka/SpeedRead/releases/download/apk-latest/SpeedRead.apk" target="_blank" rel="noopener">Завантажити SpeedRead.apk</a>
+    <p class="eua-alt">або відкрити в браузері: <a href="https://genichka.github.io/SpeedRead/" target="_blank" rel="noopener">genichka.github.io/SpeedRead</a></p>
+    <p class="eua-note">Ми постійно оновлюємо застосунок і регулярно додаємо нові тексти та вправи. Поділись посиланням!</p>
+    <button class="eua-btn" id="euaShare" type="button">↗ Поділитися посиланням</button>
+    <a class="eua-tg" href="https://t.me/+TPvrVItO2Vo2Njcy" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M21.4 4.2 2.9 11.3c-1.3.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.4l2.2-2.2 4.6 3.4c.8.5 1.4.2 1.6-.8l3-14.2c.3-1.3-.5-1.8-1.6-1.3zM9.9 14.7l-.4 4-1.4-4.6 10.5-6.6z"/></svg><span>Група Energy<span class="u">UA</span> у Telegram</span></a>
+    <button class="eua-btn eua-skip" id="euaSkip" type="button">Пропустити</button>
+  </div>
+</div>
+<script>
+/* Заставка EnergyUA: раз на запуск (у тій самій вкладці після «Оновити» чи перезавантаження — ні), інтро зі звуком, якщо браузер дозволяє;
+   далі картка з QR. Без інтернету відео не завантажиться — картка зʼявиться одразу. ?nosplash — без заставки. */
+(function(){ var el=document.getElementById("euaSpl"); if(!el) return; var v=document.getElementById("euaV"), card=document.getElementById("euaCard"), skip=false;
+  try{ var u=new URL(location.href); skip=u.searchParams.has("nosplash")||(navigator.webdriver&&!u.searchParams.has("splash"))||sessionStorage.getItem("euaSpl")==="1"; sessionStorage.setItem("euaSpl","1"); }catch(e){}
+  if(skip){ el.remove(); return; }
+  function close(){ if(el.classList.contains("out")) return; el.classList.add("out"); try{ v.pause(); }catch(e){} document.removeEventListener("keydown",key); setTimeout(function(){ el.remove(); },380); }
+  function showCard(){ if(el.classList.contains("card")) return; el.classList.add("card"); card.setAttribute("aria-hidden","false"); setTimeout(function(){ try{ v.pause(); }catch(e){} },500); }
+  function key(e){ if(e.key==="Escape") close(); }
+  function note(t){ var n=document.createElement("div"); n.className="eua-toast"; n.textContent=t; el.appendChild(n); setTimeout(function(){ n.remove(); },2600); }
+  document.addEventListener("keydown",key);
+  document.getElementById("euaSkipV").onclick=close; document.getElementById("euaSkip").onclick=close;
+  document.getElementById("euaShare").onclick=function(){ var url="https://genichka.github.io/SpeedRead/", d={title:"SpeedRead",text:"SpeedRead — тренажер швидкочитання",url:url};
+    if(navigator.share){ navigator.share(d).catch(function(){}); return; }
+    if(navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ note("Посилання скопійовано — надішли його друзям"); },function(){ note(url); }); else note(url); };
+  v.addEventListener("ended",showCard); v.addEventListener("error",showCard); setTimeout(showCard,6000);
+  try{ v.muted=false; var p=v.play(); if(p&&p.catch) p.catch(function(){ v.muted=true; var q=v.play(); if(q&&q.catch) q.catch(showCard); }); }catch(e){ showCard(); }
+})();
+</script>
+
 <div class="app">
   <header class="top">
     <div class="brand">

@@ -14,7 +14,7 @@ val buildNo: Int = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
 val genDir: File = layout.buildDirectory.get().asFile.resolve("generated/speedread")
 
 val copyWeb by tasks.registering(Copy::class) {
-    from(webRoot) { include("index.html", "manifest.webmanifest", "version.json", "icons/**") }
+    from(webRoot) { include("index.html", "manifest.webmanifest", "version.json", "intro.mp4", "icons/**") }
     into(genDir.resolve("assets/www"))
 }
 val copyIcon by tasks.registering(Copy::class) {
